@@ -57,7 +57,7 @@ export default function Canvas() {
     const [elements, setElements] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null); // Selected Element index
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-    const [cursor, setCursor] = useState("auto");
+    const [cursor, setCursor] = useState("cursor-auto");
 
     const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
