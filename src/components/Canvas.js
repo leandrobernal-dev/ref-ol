@@ -109,6 +109,7 @@ export default function Canvas() {
 
             // if middle mouse / panning
             if (event.button === 1) {
+                setCursor("cursor-grabbing");
                 setAction("panning");
             }
 
@@ -146,7 +147,6 @@ export default function Canvas() {
                     selectedControl !== -1 ? pre : selectedElementIndex
                 );
                 setResizeControls((pre) => (selectedControl !== -1 ? pre : []));
-                console.log(selectedElementIndex);
 
                 if (selectedControl !== -1) {
                     setAction("resizing");
@@ -378,14 +378,21 @@ export default function Canvas() {
                 );
             });
 
-            setCursor(
-                selectedControl !== -1 || action === "resizing"
-                    ? cursorType(selectedControl)
-                    : hovering
-                    ? "cursor-move"
-                    : "cursor-auto"
-            );
-            return;
+            setCursor(() => {
+                switch (action) {
+                    case "resizing":
+                        return cursorType(selectedResizeControl);
+                    case "panning":
+                        return "cursor-grabbing";
+                    default:
+                        if (selectedControl !== -1) {
+                            return cursorType(selectedControl);
+                        } else if (hovering) {
+                            return "cursor-move";
+                        }
+                        return "cursor-grab";
+                }
+            });
         }
         function handleMouseUp(event) {
             setAction("none");
