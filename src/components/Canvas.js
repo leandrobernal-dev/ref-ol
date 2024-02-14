@@ -47,10 +47,22 @@ class ImageElement {
         this.height = this.image.naturalHeight;
     }
 }
+const cursorType = (position) => {
+    switch (position) {
+        case 0:
+        case 1:
+            return "cursor-nwse-resize";
+        case 2:
+        case 3:
+            return "cursor-nesw-resize";
+        default:
+            return "cursor-auto";
+    }
+};
 
 export default function Canvas() {
     const canvasRef = useRef(null);
-    const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+    const [panOffset, setPanOffset] = useState({ x: 300, y: 300 });
     const [scale, setScale] = useState(1);
     const [windowSize, setWindowSize] = useState(null);
 
@@ -58,6 +70,8 @@ export default function Canvas() {
     const [selectedElement, setSelectedElement] = useState(null); // Selected Element index
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [cursor, setCursor] = useState("cursor-auto");
+    const [resizeControls, setResizeControls] = useState([]);
+    const [selectedResizeControl, setSelectedResizeControl] = useState(-1);
 
     const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
@@ -90,6 +104,7 @@ export default function Canvas() {
         }
 
         function handleMouseDown(event) {
+            const mouseCoords = getMouseCoordinates(event);
             event.preventDefault();
 
             // if middle mouse / panning
@@ -97,13 +112,25 @@ export default function Canvas() {
                 setAction("panning");
             }
 
-            // if mouse is over elements
             if (event.button === 0) {
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
                 const mouseX = (event.clientX - rect.left) * scaleX;
                 const mouseY = (event.clientY - rect.top) * scaleY;
+
+                // Get clicked resize control
+                let selectedControl = resizeControls.findIndex(function (
+                    control
+                ) {
+                    return (
+                        mouseCoords.x >= control.x &&
+                        mouseCoords.x <= control.x + control.width &&
+                        mouseCoords.y >= control.y &&
+                        mouseCoords.y <= control.y + control.height
+                    );
+                });
+                setSelectedResizeControl(selectedControl);
 
                 // Get all the element's indexes that are hovered
                 const hoveredElements = elements
@@ -112,51 +139,61 @@ export default function Canvas() {
                 // Get the last index of the hovered elements
                 const hoveredElementIndex =
                     hoveredElements[hoveredElements.length - 1];
+                const selectedElementIndex =
+                    hoveredElements.length > 0 ? elements.length - 1 : null;
 
-                setSelectedElement(
-                    hoveredElements.length > 0 ? elements.length - 1 : null
+                setSelectedElement((pre) =>
+                    selectedControl !== -1 ? pre : selectedElementIndex
                 );
+                setResizeControls((pre) => (selectedControl !== -1 ? pre : []));
+                console.log(selectedElementIndex);
 
+                if (selectedControl !== -1) {
+                    setAction("resizing");
+                }
                 if (
-                    hoveredElementIndex < 0 ||
-                    hoveredElementIndex === undefined
-                )
-                    return; // return if clicked on empty canvas
+                    hoveredElementIndex > 0 ||
+                    hoveredElementIndex !== undefined
+                ) {
+                    if (selectedControl === -1) {
+                        // Move selected element to last to render on top
+                        setElements((pre) => {
+                            const preCopy = [...pre];
+                            const movedElement = preCopy.splice(
+                                hoveredElementIndex,
+                                1
+                            )[0];
+                            preCopy.push(movedElement);
+                            return preCopy;
+                        });
 
-                // Move selected element to last to render on top
-                setElements((pre) => {
-                    const preCopy = [...pre];
-                    const movedElement = preCopy.splice(
-                        hoveredElementIndex,
-                        1
-                    )[0];
-                    preCopy.push(movedElement);
-                    return preCopy;
-                });
+                        // Set DragStart to hovered/selected Element
+                        setDragStart({
+                            x: elements[hoveredElementIndex].x * scale - mouseX,
+                            y: elements[hoveredElementIndex].y * scale - mouseY,
+                        });
 
-                // Set DragStart to hovered/selected Element
-                setDragStart({
-                    x: elements[hoveredElementIndex].x * scale - mouseX,
-                    y: elements[hoveredElementIndex].y * scale - mouseY,
-                });
-
-                setAction("dragging");
+                        // if a resize control is selected, cancel drag | Prioritize resize action & cursor3
+                        setAction("dragging");
+                    }
+                }
             }
 
             // SAMPLE ADD IMAGE ELEMENT
             if (event.button === 2) {
-                const mouseCoord = getMouseCoordinates(event);
                 const newElement = new ImageElement(
                     "https://i.pinimg.com/564x/90/e2/2e/90e22eb27604c0064e86ce5478b9fa8c.jpg",
-                    mouseCoord.x,
-                    mouseCoord.y
+                    mouseCoords.x,
+                    mouseCoords.y
                 );
                 newElement.create();
-                updateElement(newElement);
+                createElement(newElement);
             }
         }
 
         function handleMouseMove(event) {
+            const mouseCoords = getMouseCoordinates(event);
+
             if (action === "panning") {
                 setPanOffset((prevPanOffset) => ({
                     x: prevPanOffset.x + event.movementX,
@@ -182,9 +219,131 @@ export default function Canvas() {
                 });
             }
 
-            let hovering = false;
+            if (action === "resizing") {
+                if (selectedResizeControl === 0) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const aspectRatio =
+                            preCopy[selectedElement].width /
+                            preCopy[selectedElement].height;
+                        const useWidth =
+                            mouseCoords.x < preCopy[selectedElement].x;
+                        const useHeight =
+                            mouseCoords.y > preCopy[selectedElement].y;
+                        let newWidth, newHeight, newX, newY;
 
-            const mouseCoords = getMouseCoordinates(event);
+                        if (useHeight) {
+                            newWidth =
+                                preCopy[selectedElement].width -
+                                (mouseCoords.x - preCopy[selectedElement].x);
+                            newHeight = newWidth / aspectRatio;
+                            newX = mouseCoords.x;
+                            newY =
+                                preCopy[selectedElement].y +
+                                preCopy[selectedElement].height -
+                                newHeight;
+                        } else {
+                            newHeight =
+                                preCopy[selectedElement].height -
+                                (mouseCoords.y - preCopy[selectedElement].y);
+                            newWidth = newHeight * aspectRatio;
+                            newX =
+                                preCopy[selectedElement].x +
+                                preCopy[selectedElement].width -
+                                newWidth;
+                            newY = mouseCoords.y;
+                        }
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
+                        preCopy[selectedElement].x = newX;
+                        preCopy[selectedElement].y = newY;
+                        return preCopy;
+                    });
+                } else if (selectedResizeControl === 1) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const aspectRatio =
+                            preCopy[selectedElement].width /
+                            preCopy[selectedElement].height;
+                        // MAINTAIN ASPECT RATIO WHILE RESIZING REFERENCE:  https://www.sitepoint.com/community/t/maintain-aspect-ratio-while-resizing/406455/7
+                        const useWidth =
+                            mouseCoords.x <
+                            preCopy[selectedElement].x +
+                                preCopy[selectedElement].width;
+                        const newHeight = useWidth
+                            ? mouseCoords.y - preCopy[selectedElement].y
+                            : (mouseCoords.x - preCopy[selectedElement].x) /
+                              aspectRatio;
+                        const newWidth = useWidth
+                            ? (mouseCoords.y - preCopy[selectedElement].y) *
+                              aspectRatio
+                            : mouseCoords.x - preCopy[selectedElement].x;
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
+                        return preCopy;
+                    });
+                } else if (selectedResizeControl === 2) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const aspectRatio =
+                            preCopy[selectedElement].width /
+                            preCopy[selectedElement].height;
+                        const useWidth =
+                            mouseCoords.x <
+                            preCopy[selectedElement].x +
+                                preCopy[selectedElement].width;
+                        let newHeight, newWidth;
+                        if (useWidth) {
+                            newHeight =
+                                preCopy[selectedElement].height -
+                                (mouseCoords.y - preCopy[selectedElement].y);
+                            newWidth = newHeight * aspectRatio;
+                        } else {
+                            newWidth =
+                                mouseCoords.x - preCopy[selectedElement].x;
+                            newHeight = newWidth / aspectRatio;
+                        }
+                        const newY =
+                            preCopy[selectedElement].y +
+                            (preCopy[selectedElement].height - newHeight);
+                        preCopy[selectedElement].y = newY;
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
+                        return preCopy;
+                    });
+                } else if (selectedResizeControl === 3) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const aspectRatio =
+                            preCopy[selectedElement].width /
+                            preCopy[selectedElement].height;
+                        const useWidth =
+                            mouseCoords.y <
+                            preCopy[selectedElement].y +
+                                preCopy[selectedElement].height;
+                        let newHeight, newWidth;
+                        if (useWidth) {
+                            newWidth =
+                                preCopy[selectedElement].width -
+                                (mouseCoords.x - preCopy[selectedElement].x);
+                            newHeight = newWidth / aspectRatio;
+                        } else {
+                            newHeight =
+                                mouseCoords.y - preCopy[selectedElement].y;
+                            newWidth = newHeight * aspectRatio;
+                        }
+                        const newX =
+                            preCopy[selectedElement].x +
+                            (preCopy[selectedElement].width - newWidth);
+                        preCopy[selectedElement].x = newX;
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
+                        return preCopy;
+                    });
+                }
+            }
+
+            let hovering = false;
             elements.forEach((element, index) => {
                 const isHovered = isHovering(
                     mouseCoords.x,
@@ -208,7 +367,25 @@ export default function Canvas() {
                     return preCopy;
                 });
             });
-            setCursor(hovering ? "cursor-move" : "cursor-auto");
+
+            // Check if mouse is hovering inside any resize control
+            let selectedControl = resizeControls.findIndex(function (control) {
+                return (
+                    mouseCoords.x >= control.x &&
+                    mouseCoords.x <= control.x + control.width &&
+                    mouseCoords.y >= control.y &&
+                    mouseCoords.y <= control.y + control.height
+                );
+            });
+
+            setCursor(
+                selectedControl !== -1 || action === "resizing"
+                    ? cursorType(selectedControl)
+                    : hovering
+                    ? "cursor-move"
+                    : "cursor-auto"
+            );
+            return;
         }
         function handleMouseUp(event) {
             setAction("none");
@@ -231,7 +408,15 @@ export default function Canvas() {
             canvas.removeEventListener("mousemove", handleMouseMove);
             canvas.removeEventListener("contextmenu", handleContextMenu);
         };
-    }, [action, elements, dragStart, scale, selectedElement]);
+    }, [
+        action,
+        elements,
+        dragStart,
+        scale,
+        selectedElement,
+        resizeControls,
+        selectedResizeControl,
+    ]);
 
     function isHovering(x, y, element) {
         const x1 = element.x;
@@ -261,33 +446,12 @@ export default function Canvas() {
         }
     }, [pressedKeys]);
 
-    // Rerender when window resizes, disable default page zoom
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const handleResize = () => {
-            setWindowSize({
-                width: window.innerWidth,
-                height: window.innerHeight,
-            });
-        };
-        const handleWheel = (event) => {
-            event.preventDefault();
-        };
-        window.addEventListener("resize", handleResize);
-        window.addEventListener("wheel", handleWheel, { passive: false });
-
-        return () => {
-            window.removeEventListener("resize", handleResize);
-            window.removeEventListener("wheel", handleWheel);
-        };
-    }, []);
-
     // Apply transformations to canvas context
     useLayoutEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw background
@@ -310,34 +474,75 @@ export default function Canvas() {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         elements.forEach((element, index) => {
-            if (index === selectedElement) {
-                ctx.fillStyle = "blue";
-                ctx.fillRect(
-                    element.x - 1 / scale,
-                    element.y - 1 / scale,
-                    element.width + 2 / scale,
-                    element.height + 2 / scale
-                );
-            }
+            const { x, y, width, height, image } = element;
+
             ctx.drawImage(
-                element.image,
-                element.x, // - image.naturalWidth / 2,
-                element.y, // - image.naturalHeight / 2,
-                element.width,
-                element.height
+                image,
+                x, // - image.naturalWidth / 2,
+                y, // - image.naturalHeight / 2,
+                width,
+                height
             );
+
+            if (index === selectedElement) {
+                // Draw outline
+                ctx.strokeStyle = "#50C4FF";
+                ctx.lineWidth = 1 / scale;
+                ctx.strokeRect(x, y, width, height);
+                const controlSize = 10 / scale;
+
+                const controls = [
+                    {
+                        x: x - controlSize / 2,
+                        y: y - controlSize / 2,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Top-left
+                    {
+                        x: x + width - controlSize / 2,
+                        y: y + height - controlSize / 2,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Bottom-right
+                    {
+                        x: x + width - controlSize / 2,
+                        y: y - controlSize / 2,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Top-right
+                    {
+                        x: x - controlSize / 2,
+                        y: y + height - controlSize / 2,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Bottom-left
+                ];
+                setResizeControls(() => controls);
+
+                // Draw controls
+                ctx.fillStyle = "#50C4FF";
+                controls.forEach((control) => {
+                    ctx.fillRect(
+                        control.x,
+                        control.y,
+                        control.width,
+                        control.height
+                    );
+                });
+            }
         });
 
-        ctx.fillStyle = "red";
-        ctx.fillRect(0, 0, 100, 100);
+        // ctx.fillStyle = "red";
+        // ctx.fillRect(0, 0, 100, 100);
     }
 
-    function updateElement(newElement) {
+    function createElement(newElement) {
         const elementsCopy = [...elements];
         elementsCopy[elements.length] = newElement;
         setElements(elementsCopy, true);
         setUndo([...undo, ...elementsCopy]);
     }
+    function updateElement(id) {}
 
     function getMouseCoordinates(event) {
         const canvas = canvasRef.current;
@@ -361,7 +566,27 @@ export default function Canvas() {
             0
         );
         newElement.create();
-        updateElement(newElement);
+        createElement(newElement);
+    }, []);
+
+    // Rerender when window resizes, disable default page zoom
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+        const handleWheel = (event) => {
+            event.preventDefault();
+        };
+        window.addEventListener("resize", handleResize);
+        window.addEventListener("wheel", handleWheel, { passive: false });
+
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            window.removeEventListener("wheel", handleWheel);
+        };
     }, []);
 
     return (
