@@ -62,8 +62,8 @@ const cursorType = (position) => {
 
 export default function Canvas() {
     const canvasRef = useRef(null);
-    const [panOffset, setPanOffset] = useState({ x: 300, y: 300 });
-    const [scale, setScale] = useState(1);
+    const [panOffset, setPanOffset] = useState({ x: 500, y: 300 });
+    const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
     const [elements, setElements] = useState([]);
@@ -220,37 +220,26 @@ export default function Canvas() {
             }
 
             if (action === "resizing") {
+                // MAINTAIN ASPECT RATIO WHILE RESIZING REFERENCE:  https://www.sitepoint.com/community/t/maintain-aspect-ratio-while-resizing/406455/7
                 if (selectedResizeControl === 0) {
                     setElements((pre) => {
                         const preCopy = [...pre];
-                        const aspectRatio =
-                            preCopy[selectedElement].width /
-                            preCopy[selectedElement].height;
-                        const useWidth =
-                            mouseCoords.x < preCopy[selectedElement].x;
-                        const useHeight =
-                            mouseCoords.y > preCopy[selectedElement].y;
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+
+                        const aspectRatio = width / height;
+                        const useHeight = mouseCoords.y > y;
                         let newWidth, newHeight, newX, newY;
 
                         if (useHeight) {
-                            newWidth =
-                                preCopy[selectedElement].width -
-                                (mouseCoords.x - preCopy[selectedElement].x);
+                            newWidth = width - (mouseCoords.x - x);
                             newHeight = newWidth / aspectRatio;
                             newX = mouseCoords.x;
-                            newY =
-                                preCopy[selectedElement].y +
-                                preCopy[selectedElement].height -
-                                newHeight;
+                            newY = y + height - newHeight;
                         } else {
-                            newHeight =
-                                preCopy[selectedElement].height -
-                                (mouseCoords.y - preCopy[selectedElement].y);
+                            newHeight = height - (mouseCoords.y - y);
                             newWidth = newHeight * aspectRatio;
-                            newX =
-                                preCopy[selectedElement].x +
-                                preCopy[selectedElement].width -
-                                newWidth;
+                            newX = x + width - newWidth;
                             newY = mouseCoords.y;
                         }
                         preCopy[selectedElement].width = newWidth;
@@ -262,22 +251,17 @@ export default function Canvas() {
                 } else if (selectedResizeControl === 1) {
                     setElements((pre) => {
                         const preCopy = [...pre];
-                        const aspectRatio =
-                            preCopy[selectedElement].width /
-                            preCopy[selectedElement].height;
-                        // MAINTAIN ASPECT RATIO WHILE RESIZING REFERENCE:  https://www.sitepoint.com/community/t/maintain-aspect-ratio-while-resizing/406455/7
-                        const useWidth =
-                            mouseCoords.x <
-                            preCopy[selectedElement].x +
-                                preCopy[selectedElement].width;
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+
+                        const aspectRatio = width / height;
+                        const useWidth = mouseCoords.x < x + width;
                         const newHeight = useWidth
-                            ? mouseCoords.y - preCopy[selectedElement].y
-                            : (mouseCoords.x - preCopy[selectedElement].x) /
-                              aspectRatio;
+                            ? mouseCoords.y - y
+                            : (mouseCoords.x - x) / aspectRatio;
                         const newWidth = useWidth
-                            ? (mouseCoords.y - preCopy[selectedElement].y) *
-                              aspectRatio
-                            : mouseCoords.x - preCopy[selectedElement].x;
+                            ? (mouseCoords.y - y) * aspectRatio
+                            : mouseCoords.x - x;
                         preCopy[selectedElement].width = newWidth;
                         preCopy[selectedElement].height = newHeight;
                         return preCopy;
@@ -285,27 +269,21 @@ export default function Canvas() {
                 } else if (selectedResizeControl === 2) {
                     setElements((pre) => {
                         const preCopy = [...pre];
-                        const aspectRatio =
-                            preCopy[selectedElement].width /
-                            preCopy[selectedElement].height;
-                        const useWidth =
-                            mouseCoords.x <
-                            preCopy[selectedElement].x +
-                                preCopy[selectedElement].width;
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+
+                        const aspectRatio = width / height;
+                        const useWidth = mouseCoords.x < x + width;
                         let newHeight, newWidth;
                         if (useWidth) {
-                            newHeight =
-                                preCopy[selectedElement].height -
-                                (mouseCoords.y - preCopy[selectedElement].y);
+                            newHeight = height - (mouseCoords.y - y);
                             newWidth = newHeight * aspectRatio;
                         } else {
-                            newWidth =
-                                mouseCoords.x - preCopy[selectedElement].x;
+                            newWidth = mouseCoords.x - x;
                             newHeight = newWidth / aspectRatio;
                         }
-                        const newY =
-                            preCopy[selectedElement].y +
-                            (preCopy[selectedElement].height - newHeight);
+                        const newY = y + (height - newHeight);
+
                         preCopy[selectedElement].y = newY;
                         preCopy[selectedElement].width = newWidth;
                         preCopy[selectedElement].height = newHeight;
@@ -314,27 +292,21 @@ export default function Canvas() {
                 } else if (selectedResizeControl === 3) {
                     setElements((pre) => {
                         const preCopy = [...pre];
-                        const aspectRatio =
-                            preCopy[selectedElement].width /
-                            preCopy[selectedElement].height;
-                        const useWidth =
-                            mouseCoords.y <
-                            preCopy[selectedElement].y +
-                                preCopy[selectedElement].height;
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+                        const aspectRatio = width / height;
+
+                        const useWidth = mouseCoords.y < y + height;
                         let newHeight, newWidth;
+
                         if (useWidth) {
-                            newWidth =
-                                preCopy[selectedElement].width -
-                                (mouseCoords.x - preCopy[selectedElement].x);
+                            newWidth = width - (mouseCoords.x - x);
                             newHeight = newWidth / aspectRatio;
                         } else {
-                            newHeight =
-                                mouseCoords.y - preCopy[selectedElement].y;
+                            newHeight = mouseCoords.y - y;
                             newWidth = newHeight * aspectRatio;
                         }
-                        const newX =
-                            preCopy[selectedElement].x +
-                            (preCopy[selectedElement].width - newWidth);
+                        const newX = x + (width - newWidth);
                         preCopy[selectedElement].x = newX;
                         preCopy[selectedElement].width = newWidth;
                         preCopy[selectedElement].height = newHeight;
