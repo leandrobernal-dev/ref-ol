@@ -56,6 +56,8 @@ const cursorType = (position) => {
         case 2:
         case 3:
             return "cursor-nesw-resize";
+        case 4:
+            return "cursor-nesw-resize";
         default:
             return "cursor-auto";
     }
@@ -122,9 +124,7 @@ export default function Canvas() {
                 const mouseY = (event.clientY - rect.top) * scaleY;
 
                 // Get clicked resize control
-                let selectedControl = resizeControls.findIndex(function (
-                    control
-                ) {
+                let selectedControl = transformControls.findIndex((control) => {
                     return (
                         mouseCoords.x >= control.x &&
                         mouseCoords.x <= control.x + control.width &&
@@ -147,9 +147,16 @@ export default function Canvas() {
                 setSelectedElement((pre) =>
                     selectedControl !== -1 ? pre : selectedElementIndex
                 );
-                setResizeControls((pre) => (selectedControl !== -1 ? pre : []));
+                setTransformControls((pre) =>
+                    selectedControl !== -1 ? pre : []
+                );
 
                 if (selectedControl !== -1) {
+                    if (selectedControl === 4) {
+                        setAction("rotating");
+                        return;
+                    }
+
                     setAction("resizing");
                 }
                 if (
@@ -315,10 +322,62 @@ export default function Canvas() {
                     });
                 }
             }
+            if (action === "rotating") {
+                // setElements((pre) => {
+                //     const preCopy = [...pre];
+                //     const { x, y, width, height, rotationAngle } = preCopy[0];
+                //     const bottomRightX = x + width * scale;
+                //     const bottomRightY = y + height * scale;
+
+                //     const cx = x + (width * scale) / 2;
+                //     const cy = y + (height * scale) / 2;
+                //     console.log(bottomRightX, bottomRightY);
+
+                //     const rotatedA = rotate(x, y, cx, cy);
+                //     const newCenter = [
+                //         (rotatedA[0] + bottomRightX) / 2,
+                //         (rotatedA[1] + bottomRightY) / 2,
+                //     ];
+                //     const newTopLeft = rotate(
+                //         rotatedA[0],
+                //         rotatedA[1],
+                //         newCenter[0],
+                //         newCenter[1],
+                //         -rotationAngle
+                //     );
+                //     const newBottomRight = rotate(
+                //         bottomRightX,
+                //         bottomRightY,
+                //         newCenter[0],
+                //         newCenter[1],
+                //         -rotationAngle
+                //     );
+
+                //     preCopy[0].x = newTopLeft[0];
+                //     preCopy[0].y = newTopLeft[1];
+                //     preCopy[0].width = newBottomRight[0] - newTopLeft[0];
+                //     preCopy[0].height = newBottomRight[1] - newTopLeft[1];
+
+                //     return preCopy;
+                // });
+                setElements((pre) => {
+                    const preCopy = [...pre];
+                    const { x, y, width, height, rotationAngle } =
+                        preCopy[selectedElement];
+                    const cx = x + width / 2;
+                    const cy = y + height / 2;
+                    const angle = Math.atan2(
+                        mouseCoords.y - cy,
+                        mouseCoords.x - cx
+                    );
+                    preCopy[selectedElement].rotationAngle = angle + 1.55;
+                    return preCopy;
+                });
+            }
 
             let hovering = false;
             elements.forEach((element, index) => {
-                const isHovered = isHovering(
+                const isHovered = isOntopOfElement(
                     mouseCoords.x,
                     mouseCoords.y,
                     element
@@ -342,7 +401,7 @@ export default function Canvas() {
             });
 
             // Check if mouse is hovering inside any resize control
-            let selectedControl = resizeControls.findIndex(function (control) {
+            let selectedControl = transformControls.findIndex((control) => {
                 return (
                     mouseCoords.x >= control.x &&
                     mouseCoords.x <= control.x + control.width &&
@@ -394,11 +453,11 @@ export default function Canvas() {
         dragStart,
         scale,
         selectedElement,
-        resizeControls,
+        transformControls,
         selectedResizeControl,
     ]);
 
-    function isHovering(x, y, element) {
+    function isOntopOfElement(x, y, element) {
         const x1 = element.x;
         const y1 = element.y;
         const x2 = element.x + element.width;
@@ -452,10 +511,20 @@ export default function Canvas() {
     //
     function updateCanvas() {
         const canvas = canvasRef.current;
+        /** @type {CanvasRenderingContext2D} */
         const ctx = canvas.getContext("2d");
         elements.forEach((element, index) => {
-            const { x, y, width, height, image } = element;
+            let { x, y, width, height, image, rotationAngle } = element;
 
+            const cx = (x * 2 + width) / 2;
+            const cy = (y * 2 + height) / 2;
+
+            // Rotate around center
+            ctx.translate(cx, cy);
+            ctx.rotate(rotationAngle);
+            ctx.translate(-cx, -cy);
+
+            // Draw image
             ctx.drawImage(
                 image,
                 x, // - image.naturalWidth / 2,
@@ -464,14 +533,23 @@ export default function Canvas() {
                 height
             );
 
+            // Draw outline and transform controls
             if (index === selectedElement) {
+                // Draw line for rotate control
+                ctx.strokeStyle = "#50C4FF";
+                ctx.lineWidth = 1 / scale;
+                ctx.beginPath();
+                ctx.moveTo((x + (x + width)) / 2, y);
+                ctx.lineTo((x + (x + width)) / 2, y - 20 / scale);
+                ctx.stroke();
+
                 // Draw outline
                 ctx.strokeStyle = "#50C4FF";
                 ctx.lineWidth = 1 / scale;
                 ctx.strokeRect(x, y, width, height);
-                const controlSize = 10 / scale;
 
-                const controls = [
+                const controlSize = 10 / scale;
+                const controllers = [
                     {
                         x: x - controlSize / 2,
                         y: y - controlSize / 2,
@@ -496,24 +574,132 @@ export default function Canvas() {
                         width: controlSize,
                         height: controlSize,
                     }, // Bottom-left
+                    {
+                        x: x + width / 2 - controlSize / 2,
+                        y: y - 20 / scale - controlSize / 2,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Rotate control
                 ];
-                setResizeControls(() => controls);
-
                 // Draw controls
                 ctx.fillStyle = "#50C4FF";
-                controls.forEach((control) => {
-                    ctx.fillRect(
-                        control.x,
-                        control.y,
-                        control.width,
-                        control.height
-                    );
+                controllers.forEach(({ x, y, width, height }) => {
+                    ctx.fillRect(x, y, width, height);
                 });
+
+                // Set transform controls
+                const controls = [
+                    {
+                        x: rotate(
+                            x - controlSize / 2,
+                            y - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[0],
+                        y: rotate(
+                            x - controlSize / 2,
+                            y - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[1],
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Top-left
+                    {
+                        x: rotate(
+                            x + width - controlSize / 2,
+                            y + height - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[0],
+                        y: rotate(
+                            x + width - controlSize / 2,
+                            y + height - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[1],
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Bottom-right
+                    {
+                        x: rotate(
+                            x + width - controlSize / 2,
+                            y - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[0],
+                        y: rotate(
+                            x + width - controlSize / 2,
+                            y - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[1],
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Top-right
+                    {
+                        x: rotate(
+                            x - controlSize / 2,
+                            y + height - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[0],
+                        y: rotate(
+                            x - controlSize / 2,
+                            y + height - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[1],
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Bottom-left
+                    {
+                        x: rotate(
+                            x + width / 2 - controlSize / 2,
+                            y - 20 / scale - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[0],
+                        y: rotate(
+                            x + width / 2 - controlSize / 2,
+                            y - 20 / scale - controlSize / 2,
+                            cx,
+                            cy,
+                            rotationAngle
+                        )[1],
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Rotate control
+                ];
+                setTransformControls(() => controls);
             }
+
+            // Reset transformations
+            ctx.translate(cx, cy);
+            ctx.rotate(-rotationAngle);
+            ctx.translate(-cx, -cy);
         });
 
-        // ctx.fillStyle = "red";
-        // ctx.fillRect(0, 0, 100, 100);
+        // Draw grid
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 1 / scale;
+        ctx.beginPath();
+        ctx.moveTo(0, -5 / scale);
+        ctx.lineTo(0, 5 / scale);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-5 / scale, 0);
+        ctx.lineTo(5 / scale, 0);
+        ctx.stroke();
     }
 
     function createElement(newElement) {
@@ -538,10 +724,20 @@ export default function Canvas() {
         };
     }
 
+    //
+    function rotate(x, y, cx, cy, angle) {
+        return [
+            (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
+            (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle) + cy,
+        ];
+    }
+
     // SAMPLE ADD ELEMENT
     useEffect(() => {
         const newElement = new ImageElement(
-            "https://i.pinimg.com/564x/6d/be/cd/6dbecdc197af6b2a9278550bb31d4f8f.jpg",
+            // "https://i.pinimg.com/564x/6d/be/cd/6dbecdc197af6b2a9278550bb31d4f8f.jpg",
+            // https://i.pinimg.com/564x/2d/d2/ab/2dd2abaf2d73de92bd383a77bd9f5880.jpg,
+            "https://i.pinimg.com/564x/40/cf/8f/40cf8ff8cf5d692f31439a71d6d69912.jpg",
             0,
             0
         );
