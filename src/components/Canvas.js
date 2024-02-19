@@ -457,16 +457,57 @@ export default function Canvas() {
         selectedResizeControl,
     ]);
 
-    function isOntopOfElement(x, y, element) {
-        const x1 = element.x;
-        const y1 = element.y;
-        const x2 = element.x + element.width;
-        const y2 = element.y + element.height;
-        if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-            return true;
+    function isOntopOfElement(mouseX, mouseY, element) {
+        // Initialize the inside flag
+        let inside = false;
+
+        // Get the corners of the element
+        const corners = getElementCorner(
+            element.x,
+            element.y,
+            element.width,
+            element.height,
+            element.rotationAngle
+        );
+
+        // Create a point from the mouse coordinates
+        const point = [mouseX, mouseY];
+
+        // Check if the point is inside the element
+        for (let i = 0, j = corners.length - 1; i < corners.length; j = i++) {
+            const xi = corners[i][0];
+            const yi = corners[i][1];
+            const xj = corners[j][0];
+            const yj = corners[j][1];
+
+            // Check if the line segment intersects with the point
+            const intersect =
+                yi > point[1] !== yj > point[1] &&
+                point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi) + xi;
+
+            // Toggle the inside flag if there is an intersection
+            if (intersect) {
+                inside = !inside;
+            }
         }
 
-        return false;
+        return inside;
+    }
+    function getElementCorner(x, y, width, height, angle) {
+        const cx = (x * 2 + width) / 2;
+        const cy = (y * 2 + height) / 2;
+
+        const topLeft = rotate(x, y, cx, cy, angle);
+        const topRight = rotate(x + width, y, cx, cy, angle);
+        const bottomRight = rotate(x + width, y + height, cx, cy, angle);
+        const bottomLeft = rotate(x, y + height, cx, cy, angle);
+
+        return [
+            [topLeft[0], topLeft[1]],
+            [topRight[0], topRight[1]],
+            [bottomRight[0], bottomRight[1]],
+            [bottomLeft[0], bottomLeft[1]],
+        ];
     }
 
     //
