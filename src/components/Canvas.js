@@ -38,6 +38,7 @@ class ImageElement {
         this.height = null;
         this.isHovered = false;
         this.image = null;
+        this.rotationAngle = 0;
     }
 
     create() {
