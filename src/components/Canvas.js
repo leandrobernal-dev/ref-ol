@@ -124,14 +124,7 @@ export default function Canvas() {
                 const mouseY = (event.clientY - rect.top) * scaleY;
 
                 // Get clicked resize control
-                let selectedControl = transformControls.findIndex((control) => {
-                    return (
-                        mouseCoords.x >= control.x &&
-                        mouseCoords.x <= control.x + control.width &&
-                        mouseCoords.y >= control.y &&
-                        mouseCoords.y <= control.y + control.height
-                    );
-                });
+                let selectedControl = getTransformControl(mouseCoords);
                 setSelectedResizeControl(selectedControl);
 
                 // Get all the element's indexes that are hovered
@@ -401,14 +394,7 @@ export default function Canvas() {
             });
 
             // Check if mouse is hovering inside any resize control
-            let selectedControl = transformControls.findIndex((control) => {
-                return (
-                    mouseCoords.x >= control.x &&
-                    mouseCoords.x <= control.x + control.width &&
-                    mouseCoords.y >= control.y &&
-                    mouseCoords.y <= control.y + control.height
-                );
-            });
+            let selectedControl = getTransformControl(mouseCoords);
 
             setCursor(() => {
                 switch (action) {
@@ -431,6 +417,17 @@ export default function Canvas() {
         }
         function handleContextMenu(event) {
             event.preventDefault();
+        }
+        function getTransformControl(mouseCoords) {
+            let selectedControl = transformControls.findIndex((control) => {
+                const dx = mouseCoords.x - control.x;
+                const dy = mouseCoords.y - control.y;
+                return (
+                    dx * dx + dy * dy <=
+                    ((control.width / 2) * control.width) / 2
+                );
+            });
+            return selectedControl;
         }
         // Attach event listeners
         canvas.addEventListener("mousedown", handleMouseDown);
