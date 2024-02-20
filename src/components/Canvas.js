@@ -359,11 +359,16 @@ export default function Canvas() {
                         preCopy[selectedElement];
                     const cx = x + width / 2;
                     const cy = y + height / 2;
+
+                    const a1 = Math.atan2(
+                        y - cy - 20 / scale,
+                        x - cx + width / 2
+                    );
                     const angle = Math.atan2(
                         mouseCoords.y - cy,
                         mouseCoords.x - cx
                     );
-                    preCopy[selectedElement].rotationAngle = angle + 1.55;
+                    preCopy[selectedElement].rotationAngle = angle - a1;
                     return preCopy;
                 });
             }
