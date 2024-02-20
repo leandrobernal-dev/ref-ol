@@ -592,127 +592,84 @@ export default function Canvas() {
                 const controlSize = 10 / scale;
                 const controllers = [
                     {
-                        x: x - controlSize / 2,
-                        y: y - controlSize / 2,
-                        width: controlSize,
-                        height: controlSize,
+                        x: x,
+                        y: y,
                     }, // Top-left
                     {
-                        x: x + width - controlSize / 2,
-                        y: y + height - controlSize / 2,
-                        width: controlSize,
-                        height: controlSize,
+                        x: x + width,
+                        y: y + height,
                     }, // Bottom-right
                     {
-                        x: x + width - controlSize / 2,
-                        y: y - controlSize / 2,
-                        width: controlSize,
-                        height: controlSize,
+                        x: x + width,
+                        y: y,
                     }, // Top-right
                     {
-                        x: x - controlSize / 2,
-                        y: y + height - controlSize / 2,
-                        width: controlSize,
-                        height: controlSize,
+                        x: x,
+                        y: y + height,
                     }, // Bottom-left
                     {
-                        x: x + width / 2 - controlSize / 2,
-                        y: y - 20 / scale - controlSize / 2,
-                        width: controlSize,
-                        height: controlSize,
+                        x: x + width / 2,
+                        y: y - 20 / scale,
                     }, // Rotate control
                 ];
                 // Draw controls
                 ctx.fillStyle = "#50C4FF";
-                controllers.forEach(({ x, y, width, height }) => {
-                    ctx.fillRect(x, y, width, height);
+                controllers.forEach(({ x, y }) => {
+                    // Draw circle with origin point in center and diameter of 10 / scale
+                    ctx.beginPath();
+                    ctx.arc(x, y, 10 / scale / 2, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    ctx.fill(); // Add fill to the circle
                 });
+
+                const topLeft = rotate(x, y, cx, cy, rotationAngle);
+                const bottomRight = rotate(
+                    x + width,
+                    y + height,
+                    cx,
+                    cy,
+                    rotationAngle
+                );
+                const topRight = rotate(x + width, y, cx, cy, rotationAngle);
+                const bottomLeft = rotate(x, y + height, cx, cy, rotationAngle);
 
                 // Set transform controls
                 const controls = [
                     {
-                        x: rotate(
-                            x - controlSize / 2,
-                            y - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[0],
-                        y: rotate(
-                            x - controlSize / 2,
-                            y - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[1],
+                        x: topLeft[0],
+                        y: topLeft[1],
                         width: controlSize,
                         height: controlSize,
                     }, // Top-left
                     {
-                        x: rotate(
-                            x + width - controlSize / 2,
-                            y + height - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[0],
-                        y: rotate(
-                            x + width - controlSize / 2,
-                            y + height - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[1],
+                        x: bottomRight[0],
+                        y: bottomRight[1],
                         width: controlSize,
                         height: controlSize,
                     }, // Bottom-right
                     {
-                        x: rotate(
-                            x + width - controlSize / 2,
-                            y - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[0],
-                        y: rotate(
-                            x + width - controlSize / 2,
-                            y - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[1],
+                        x: topRight[0],
+                        y: topRight[1],
                         width: controlSize,
                         height: controlSize,
                     }, // Top-right
                     {
-                        x: rotate(
-                            x - controlSize / 2,
-                            y + height - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[0],
-                        y: rotate(
-                            x - controlSize / 2,
-                            y + height - controlSize / 2,
-                            cx,
-                            cy,
-                            rotationAngle
-                        )[1],
+                        x: bottomLeft[0],
+                        y: bottomLeft[1],
                         width: controlSize,
                         height: controlSize,
                     }, // Bottom-left
                     {
                         x: rotate(
-                            x + width / 2 - controlSize / 2,
-                            y - 20 / scale - controlSize / 2,
+                            x + width / 2,
+                            y - 20 / scale,
                             cx,
                             cy,
                             rotationAngle
                         )[0],
                         y: rotate(
-                            x + width / 2 - controlSize / 2,
-                            y - 20 / scale - controlSize / 2,
+                            x + width / 2,
+                            y - 20 / scale,
                             cx,
                             cy,
                             rotationAngle
