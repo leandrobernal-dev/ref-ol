@@ -457,6 +457,12 @@ export default function Canvas() {
             });
             return selectedControl;
         }
+        function radToDeg(angle) {
+            return (180 * angle) / Math.PI;
+        }
+        function degToRad(angle) {
+            return (Math.PI / 180) * angle;
+        }
         // Attach event listeners
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mouseup", handleMouseUp);
