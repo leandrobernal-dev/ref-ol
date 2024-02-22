@@ -72,6 +72,14 @@ export default function Canvas() {
     const [elements, setElements] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null); // Selected Element index
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const [initialTransform, setInitialTransform] = useState({
+        initW: 0,
+        initH: 0,
+        mousePressX: 0,
+        mousePressY: 0,
+        initX: 0,
+        initY: 0,
+    });
     const [cursor, setCursor] = useState("cursor-auto");
     const [transformControls, setTransformControls] = useState([]);
     const [selectedResizeControl, setSelectedResizeControl] = useState(-1);
@@ -151,6 +159,19 @@ export default function Canvas() {
                     }
 
                     setAction("resizing");
+                    //
+                    setInitialTransform((pre) => ({
+                        initX:
+                            elements[selectedElement].x +
+                            elements[selectedElement].width / 2, //x + width / 2
+                        initY:
+                            elements[selectedElement].y +
+                            elements[selectedElement].height / 2,
+                        mousePressX: mouseCoords.x,
+                        mousePressY: mouseCoords.y,
+                        initW: elements[selectedElement].width,
+                        initH: elements[selectedElement].height,
+                    }));
                 }
                 if (
                     hoveredElementIndex > 0 ||
@@ -457,6 +478,7 @@ export default function Canvas() {
         selectedElement,
         transformControls,
         selectedResizeControl,
+        initialTransform,
     ]);
 
     function isOntopOfElement(mouseX, mouseY, element) {
