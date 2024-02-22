@@ -83,6 +83,8 @@ export default function Canvas() {
     const [cursor, setCursor] = useState("cursor-auto");
     const [transformControls, setTransformControls] = useState([]);
     const [selectedResizeControl, setSelectedResizeControl] = useState(-1);
+    const maxZoom = 3.0;
+    const minZoom = 0.01;
 
     const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
@@ -101,17 +103,22 @@ export default function Canvas() {
             const mouseX = event.clientX - boundingRect.left;
             const mouseY = event.clientY - boundingRect.top;
 
-            // Calculate new position based on zoom origin
-            setPanOffset((prevPosition) => ({
-                x:
-                    prevPosition.x -
-                    (mouseX - prevPosition.x) * (scaleFactor - 1),
-                y:
-                    prevPosition.y -
-                    (mouseY - prevPosition.y) * (scaleFactor - 1),
-            }));
+            // Calculate new scale based on zoom origin
+            const newScale = scale * scaleFactor;
 
-            setScale((prevScale) => prevScale * scaleFactor);
+            // Check if new scale is within limits
+            if (newScale >= minZoom && newScale <= maxZoom) {
+                // Update scale and pan offset
+                setScale(newScale);
+                setPanOffset((prevPosition) => ({
+                    x:
+                        prevPosition.x -
+                        (mouseX - prevPosition.x) * (scaleFactor - 1),
+                    y:
+                        prevPosition.y -
+                        (mouseY - prevPosition.y) * (scaleFactor - 1),
+                }));
+            }
         }
 
         function handleMouseDown(event) {
