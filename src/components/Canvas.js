@@ -542,10 +542,11 @@ export default function Canvas() {
             // Iterate through each image to find the minimum and maximum coordinates
             for (let i = 0; i < elements.length; i++) {
                 let image = elements[i];
-                minX = Math.min(minX, image.x);
-                minY = Math.min(minY, image.y);
-                maxX = Math.max(maxX, image.x + image.width);
-                maxY = Math.max(maxY, image.y + image.height);
+                let bbox = getRotatedBoundingBox(image);
+                minX = Math.min(minX, bbox.minX);
+                minY = Math.min(minY, bbox.minY);
+                maxX = Math.max(maxX, bbox.minX + bbox.width);
+                maxY = Math.max(maxY, bbox.minY + bbox.height);
             }
 
             // Calculate the width and height of the rectangle
@@ -555,8 +556,8 @@ export default function Canvas() {
             // Adjusting for panOffset and scale
             let adjustedX = minX * scale + panOffset.x;
             let adjustedY = minY * scale + panOffset.y;
-            let adjustedWidth = rectWidth * scale;
-            let adjustedHeight = rectHeight * scale;
+            let adjustedWidth = (maxX - minX) * scale;
+            let adjustedHeight = (maxY - minY) * scale;
 
             // Now you can draw the rectangle with adjusted values
             ctx.fillStyle = "#171717"; // for example, semi-transparent black
@@ -572,7 +573,78 @@ export default function Canvas() {
 
         ctx.restore();
     }, [scale, panOffset, windowSize, elements, selectedElement, undo]);
+    function getRotatedBoundingBox(image) {
+        // Calculate the center point of the image
+        let centerX = image.x + image.width / 2;
+        let centerY = image.y + image.height / 2;
 
+        // Calculate the rotated coordinates of each corner
+        let topLeft = rotate(
+            image.x,
+            image.y,
+            centerX,
+            centerY,
+            image.rotationAngle
+        );
+        let topRight = rotate(
+            image.x + image.width,
+            image.y,
+            centerX,
+            centerY,
+            image.rotationAngle
+        );
+        let bottomLeft = rotate(
+            image.x,
+            image.y + image.height,
+            centerX,
+            centerY,
+            image.rotationAngle
+        );
+        let bottomRight = rotate(
+            image.x + image.width,
+            image.y + image.height,
+            centerX,
+            centerY,
+            image.rotationAngle
+        );
+
+        // Find the minimum and maximum coordinates
+        let minX = Math.min(
+            topLeft[0],
+            topRight[0],
+            bottomLeft[0],
+            bottomRight[0]
+        );
+        let minY = Math.min(
+            topLeft[1],
+            topRight[1],
+            bottomLeft[1],
+            bottomRight[1]
+        );
+        let maxX = Math.max(
+            topLeft[0],
+            topRight[0],
+            bottomLeft[0],
+            bottomRight[0]
+        );
+        let maxY = Math.max(
+            topLeft[1],
+            topRight[1],
+            bottomLeft[1],
+            bottomRight[1]
+        );
+
+        // Calculate the width and height of the bounding box
+        let width = maxX - minX;
+        let height = maxY - minY;
+
+        return {
+            minX: minX,
+            minY: minY,
+            width: width,
+            height: height,
+        };
+    }
     //
     function updateCanvas() {
         const canvas = canvasRef.current;
