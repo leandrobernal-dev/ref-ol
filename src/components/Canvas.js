@@ -530,8 +530,39 @@ export default function Canvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw background
-        ctx.fillStyle = "#0D0D0D";
+        ctx.fillStyle = "#101010";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw rectangle around selected elements
+        if (elements.length !== 0) {
+            let minX = Infinity;
+            let minY = Infinity;
+            let maxX = -Infinity;
+            let maxY = -Infinity;
+
+            // Iterate through each image to find the minimum and maximum coordinates
+            for (let i = 0; i < elements.length; i++) {
+                let image = elements[i];
+                minX = Math.min(minX, image.x);
+                minY = Math.min(minY, image.y);
+                maxX = Math.max(maxX, image.x + image.width);
+                maxY = Math.max(maxY, image.y + image.height);
+            }
+
+            // Calculate the width and height of the rectangle
+            let rectWidth = maxX - minX;
+            let rectHeight = maxY - minY;
+
+            // Adjusting for panOffset and scale
+            let adjustedX = minX * scale + panOffset.x;
+            let adjustedY = minY * scale + panOffset.y;
+            let adjustedWidth = rectWidth * scale;
+            let adjustedHeight = rectHeight * scale;
+
+            // Now you can draw the rectangle with adjusted values
+            ctx.fillStyle = "#171717"; // for example, semi-transparent black
+            ctx.fillRect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+            console.log(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+        }
 
         ctx.save();
         // ctx.setTransform(scale, 0, 0, scale, panOffset.x, panOffset.y);
