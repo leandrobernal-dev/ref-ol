@@ -242,96 +242,98 @@ export default function Canvas() {
             }
 
             if (action === "resizing") {
-                // MAINTAIN ASPECT RATIO WHILE RESIZING REFERENCE:  https://www.sitepoint.com/community/t/maintain-aspect-ratio-while-resizing/406455/7
-                if (selectedResizeControl === 0) {
+                switch (selectedResizeControl) {
+                    case 0:
+                        resizeHandler(true, true, true, true);
+                        break;
+                    case 1:
+                        resizeHandler(false, false, true, true);
+                        break;
+                    case 2:
+                        resizeHandler(false, true, true, true);
+                        break;
+                    case 3:
+                        resizeHandler(true, false, true, true);
+                        break;
+                    default:
+                        return;
+                }
+                function resizeHandler(
+                    left = false,
+                    top = false,
+                    xResize = false,
+                    yResize = false
+                ) {
                     setElements((pre) => {
                         const preCopy = [...pre];
-                        const { x, y, width, height } =
-                            preCopy[selectedElement];
+                        const { rotationAngle } = preCopy[selectedElement];
+                        const {
+                            initW,
+                            initH,
+                            mousePressX,
+                            mousePressY,
+                            initX,
+                            initY,
+                        } = initialTransform;
 
-                        const aspectRatio = width / height;
-                        const useHeight = mouseCoords.y > y;
-                        let newWidth, newHeight, newX, newY;
+                        let cosFraction = Math.cos(rotationAngle);
+                        let sinFraction = Math.sin(rotationAngle);
+                        //
+                        let wDiff = mouseCoords.x - mousePressX;
+                        let hDiff = mouseCoords.y - mousePressY;
+                        let rotatedWDiff =
+                            cosFraction * wDiff + sinFraction * hDiff;
+                        let rotatedHDiff =
+                            cosFraction * hDiff - sinFraction * wDiff;
+                        let newW = initW,
+                            newH = initH,
+                            newx = initX,
+                            newy = initY;
 
-                        if (useHeight) {
-                            newWidth = width - (mouseCoords.x - x);
-                            newHeight = newWidth / aspectRatio;
-                            newX = mouseCoords.x;
-                            newY = y + height - newHeight;
-                        } else {
-                            newHeight = height - (mouseCoords.y - y);
-                            newWidth = newHeight * aspectRatio;
-                            newX = x + width - newWidth;
-                            newY = mouseCoords.y;
+                        //calculate width and height
+                        if (xResize) {
+                            if (left) {
+                                newW = initW - rotatedWDiff;
+                            } else {
+                                newW = initW + rotatedWDiff;
+                            }
                         }
-                        preCopy[selectedElement].width = newWidth;
-                        preCopy[selectedElement].height = newHeight;
-                        preCopy[selectedElement].x = newX;
-                        preCopy[selectedElement].y = newY;
-                        return preCopy;
-                    });
-                } else if (selectedResizeControl === 1) {
-                    setElements((pre) => {
-                        const preCopy = [...pre];
-                        const { x, y, width, height } =
-                            preCopy[selectedElement];
-
-                        const aspectRatio = width / height;
-                        const useWidth = mouseCoords.x < x + width;
-                        const newHeight = useWidth
-                            ? mouseCoords.y - y
-                            : (mouseCoords.x - x) / aspectRatio;
-                        const newWidth = useWidth
-                            ? (mouseCoords.y - y) * aspectRatio
-                            : mouseCoords.x - x;
-                        preCopy[selectedElement].width = newWidth;
-                        preCopy[selectedElement].height = newHeight;
-                        return preCopy;
-                    });
-                } else if (selectedResizeControl === 2) {
-                    setElements((pre) => {
-                        const preCopy = [...pre];
-                        const { x, y, width, height } =
-                            preCopy[selectedElement];
-
-                        const aspectRatio = width / height;
-                        const useWidth = mouseCoords.x < x + width;
-                        let newHeight, newWidth;
-                        if (useWidth) {
-                            newHeight = height - (mouseCoords.y - y);
-                            newWidth = newHeight * aspectRatio;
-                        } else {
-                            newWidth = mouseCoords.x - x;
-                            newHeight = newWidth / aspectRatio;
+                        if (yResize) {
+                            if (top) {
+                                newH = initH - rotatedHDiff;
+                            } else {
+                                newH = initH + rotatedHDiff;
+                            }
                         }
-                        const newY = y + (height - newHeight);
 
-                        preCopy[selectedElement].y = newY;
-                        preCopy[selectedElement].width = newWidth;
-                        preCopy[selectedElement].height = newHeight;
-                        return preCopy;
-                    });
-                } else if (selectedResizeControl === 3) {
-                    setElements((pre) => {
-                        const preCopy = [...pre];
-                        const { x, y, width, height } =
-                            preCopy[selectedElement];
-                        const aspectRatio = width / height;
-
-                        const useWidth = mouseCoords.y < y + height;
-                        let newHeight, newWidth;
-
-                        if (useWidth) {
-                            newWidth = width - (mouseCoords.x - x);
-                            newHeight = newWidth / aspectRatio;
-                        } else {
-                            newHeight = mouseCoords.y - y;
-                            newWidth = newHeight * aspectRatio;
+                        // aspect ratio contraint
+                        let sc = Math.max(newW / initW, newH / initH);
+                        newW = sc * initW;
+                        newH = sc * initH;
+                        // Recalculate position
+                        if (xResize) {
+                            if (left) {
+                                rotatedWDiff = initW - newW;
+                            } else {
+                                rotatedWDiff = newW - initW;
+                            }
+                            newx += 0.5 * rotatedWDiff * cosFraction;
+                            newy += 0.5 * rotatedWDiff * sinFraction;
                         }
-                        const newX = x + (width - newWidth);
-                        preCopy[selectedElement].x = newX;
-                        preCopy[selectedElement].width = newWidth;
-                        preCopy[selectedElement].height = newHeight;
+                        if (yResize) {
+                            if (top) {
+                                rotatedHDiff = initH - newH;
+                            } else {
+                                rotatedHDiff = newH - initH;
+                            }
+                            newx -= 0.5 * rotatedHDiff * sinFraction;
+                            newy += 0.5 * rotatedHDiff * cosFraction;
+                        }
+
+                        preCopy[selectedElement].x = newx - newW / 2;
+                        preCopy[selectedElement].y = newy - newH / 2;
+                        preCopy[selectedElement].width = newW;
+                        preCopy[selectedElement].height = newH;
                         return preCopy;
                     });
                 }
