@@ -85,6 +85,8 @@ export default function Canvas() {
     const [selectedResizeControl, setSelectedResizeControl] = useState(-1);
     const maxZoom = 3.0;
     const minZoom = 0.01;
+    const minWidth = 20;
+    const minHeight = 20;
 
     const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
@@ -304,12 +306,18 @@ export default function Canvas() {
                             } else {
                                 newW = initW + rotatedWDiff;
                             }
+                            if (newW < minWidth) {
+                                newW = minWidth;
+                            }
                         }
                         if (yResize) {
                             if (top) {
                                 newH = initH - rotatedHDiff;
                             } else {
                                 newH = initH + rotatedHDiff;
+                            }
+                            if (newH < minHeight) {
+                                newH = minHeight;
                             }
                         }
 
