@@ -57,7 +57,7 @@ const cursorType = (position) => {
         case 3:
             return "cursor-nesw-resize";
         case 4:
-            return "cursor-nesw-resize";
+            return "cursor-[url('https://findicons.com/files/icons/1620/crystal_project/16/rotate_ccw.png')]";
         default:
             return "cursor-auto";
     }
@@ -305,8 +305,10 @@ export default function Canvas() {
                                 newH = initH + rotatedHDiff;
                             }
                         }
+                        // newW = initW + rotatedWDiff;
+                        // newH = initH + rotatedHDiff;
+                        // aspect ration contraint
 
-                        // aspect ratio contraint
                         let sc = Math.max(newW / initW, newH / initH);
                         newW = sc * initW;
                         newH = sc * initH;
@@ -334,6 +336,133 @@ export default function Canvas() {
                         preCopy[selectedElement].y = newy - newH / 2;
                         preCopy[selectedElement].width = newW;
                         preCopy[selectedElement].height = newH;
+                        return preCopy;
+                    });
+                }
+                return;
+                // MAINTAIN ASPECT RATIO WHILE RESIZING REFERENCE:  https://www.sitepoint.com/community/t/maintain-aspect-ratio-while-resizing/406455/7
+                if (selectedResizeControl === 0) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+
+                        const aspectRatio = width / height;
+                        const useHeight = mouseCoords.y > y;
+                        let newWidth, newHeight, newX, newY;
+
+                        if (useHeight) {
+                            newWidth = width - (mouseCoords.x - x);
+                            newHeight = newWidth / aspectRatio;
+                            newX = mouseCoords.x;
+                            newY = y + height - newHeight;
+                        } else {
+                            newHeight = height - (mouseCoords.y - y);
+                            newWidth = newHeight * aspectRatio;
+                            newX = x + width - newWidth;
+                            newY = mouseCoords.y;
+                        }
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
+                        preCopy[selectedElement].x = newX;
+                        preCopy[selectedElement].y = newY;
+                        return preCopy;
+                    });
+                } else if (selectedResizeControl === 1) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const { x, y, width, height, rotationAngle } =
+                            preCopy[selectedElement];
+                        const {
+                            initW,
+                            initH,
+                            mousePressX,
+                            mousePressY,
+                            initX,
+                            initY,
+                        } = initialTransform;
+                        // const aspectRatio = width / height;
+
+                        let cosFraction = Math.cos(rotationAngle);
+                        let sinFraction = Math.sin(rotationAngle);
+                        //
+                        let wDiff = mouseCoords.x - mousePressX;
+                        let hDiff = mouseCoords.y - mousePressY;
+                        let rotatedWDiff =
+                            cosFraction * wDiff + sinFraction * hDiff;
+                        let rotatedHDiff =
+                            cosFraction * hDiff - sinFraction * wDiff;
+                        let newW = initW,
+                            newH = initH,
+                            newx = initX,
+                            newy = initY;
+                        //calculate width and height
+                        newW = initW + rotatedWDiff;
+                        newH = initH + rotatedHDiff;
+                        // aspect ration contraint
+
+                        let sc = Math.max(newW / initW, newH / initH);
+                        newW = sc * initW;
+                        newH = sc * initH;
+                        console.log(newW, newH);
+                        // Recalculate position
+                        rotatedWDiff = newW - initW;
+                        newx += 0.5 * rotatedWDiff * cosFraction;
+                        newy += 0.5 * rotatedWDiff * sinFraction;
+                        rotatedHDiff = newH - initH;
+                        newx -= 0.5 * rotatedHDiff * sinFraction;
+                        newy += 0.5 * rotatedHDiff * cosFraction;
+
+                        preCopy[selectedElement].x = newx - newW / 2;
+                        preCopy[selectedElement].y = newy - newH / 2;
+                        preCopy[selectedElement].width = newW;
+                        preCopy[selectedElement].height = newH;
+                        return preCopy;
+                    });
+                } else if (selectedResizeControl === 2) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+
+                        const aspectRatio = width / height;
+                        const useWidth = mouseCoords.x < x + width;
+                        let newHeight, newWidth;
+                        if (useWidth) {
+                            newHeight = height - (mouseCoords.y - y);
+                            newWidth = newHeight * aspectRatio;
+                        } else {
+                            newWidth = mouseCoords.x - x;
+                            newHeight = newWidth / aspectRatio;
+                        }
+                        const newY = y + (height - newHeight);
+
+                        preCopy[selectedElement].y = newY;
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
+                        return preCopy;
+                    });
+                } else if (selectedResizeControl === 3) {
+                    setElements((pre) => {
+                        const preCopy = [...pre];
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+                        const aspectRatio = width / height;
+
+                        const useWidth = mouseCoords.y < y + height;
+                        let newHeight, newWidth;
+
+                        if (useWidth) {
+                            newWidth = width - (mouseCoords.x - x);
+                            newHeight = newWidth / aspectRatio;
+                        } else {
+                            newHeight = mouseCoords.y - y;
+                            newWidth = newHeight * aspectRatio;
+                        }
+                        const newX = x + (width - newWidth);
+                        preCopy[selectedElement].x = newX;
+                        preCopy[selectedElement].width = newWidth;
+                        preCopy[selectedElement].height = newHeight;
                         return preCopy;
                     });
                 }
@@ -682,6 +811,42 @@ export default function Canvas() {
             ctx.translate(-cx, -cy);
         });
 
+        if (selectedElement !== null) {
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 1 / scale;
+            ctx.strokeRect(
+                elements[selectedElement].x,
+                elements[selectedElement].y,
+                elements[selectedElement].width,
+                elements[selectedElement].height
+            );
+            // Draw grid
+            ctx.lineWidth = 1 / scale;
+            ctx.beginPath();
+            ctx.moveTo(
+                elements[selectedElement].x +
+                    elements[selectedElement].width / 2,
+                -1000 / scale
+            );
+            ctx.lineTo(
+                elements[selectedElement].x +
+                    elements[selectedElement].width / 2,
+                1000 / scale
+            );
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(
+                -1000 / scale,
+                elements[selectedElement].y +
+                    elements[selectedElement].height / 2
+            );
+            ctx.lineTo(
+                1000 / scale,
+                elements[selectedElement].y +
+                    elements[selectedElement].height / 2
+            );
+            ctx.stroke();
+        }
         // Draw grid
         ctx.strokeStyle = "red";
         ctx.lineWidth = 1 / scale;
