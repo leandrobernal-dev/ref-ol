@@ -561,11 +561,9 @@ export default function Canvas() {
             // Now you can draw the rectangle with adjusted values
             ctx.fillStyle = "#171717"; // for example, semi-transparent black
             ctx.fillRect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
-            console.log(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
         }
 
         ctx.save();
-        // ctx.setTransform(scale, 0, 0, scale, panOffset.x, panOffset.y);
         // Apply transformations
         ctx.translate(panOffset.x, panOffset.y);
         ctx.scale(scale, scale);
