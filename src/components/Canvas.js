@@ -40,6 +40,7 @@ class ImageElement {
         this.image = null;
         this.rotationAngle = 0;
         this.id = null;
+        this.selected = false;
     }
 
     create() {
