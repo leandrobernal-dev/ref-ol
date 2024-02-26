@@ -39,6 +39,7 @@ class ImageElement {
         this.isHovered = false;
         this.image = null;
         this.rotationAngle = 0;
+        this.id = null;
     }
 
     create() {
@@ -46,6 +47,7 @@ class ImageElement {
         this.image.src = this.src;
         this.width = this.image.naturalWidth;
         this.height = this.image.naturalHeight;
+        this.id = Math.random().toString(36).substring(2, 9);
     }
     resize(w, h) {
         this.width = w;
