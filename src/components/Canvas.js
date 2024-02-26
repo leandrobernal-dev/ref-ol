@@ -748,10 +748,6 @@ export default function Canvas() {
                 maxY = Math.max(maxY, bbox.minY + bbox.height);
             }
 
-            // Calculate the width and height of the rectangle
-            let rectWidth = maxX - minX;
-            let rectHeight = maxY - minY;
-
             // Adjusting for panOffset and scale
             let adjustedX = minX * scale + panOffset.x;
             let adjustedY = minY * scale + panOffset.y;
