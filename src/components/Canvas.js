@@ -47,6 +47,10 @@ class ImageElement {
         this.width = this.image.naturalWidth;
         this.height = this.image.naturalHeight;
     }
+    resize(w, h) {
+        this.width = w;
+        this.height = h;
+    }
 }
 const cursorType = (position) => {
     switch (position) {
