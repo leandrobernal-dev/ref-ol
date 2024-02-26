@@ -70,13 +70,15 @@ export default function Canvas() {
     const [windowSize, setWindowSize] = useState(null);
 
     const [elements, setElements] = useState([]);
-    const [selectedElement, setSelectedElement] = useState(null); // Selected Element index
+    const [selectedElement, setSelectedElement] = useState([0, 1]); // Selected Element index
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [initialTransform, setInitialTransform] = useState({
         initW: 0,
         initH: 0,
         mousePressX: 0,
         mousePressY: 0,
+        initCX: 0,
+        initCY: 0,
         initX: 0,
         initY: 0,
     });
@@ -162,25 +164,56 @@ export default function Canvas() {
                 );
 
                 if (selectedControl !== -1) {
+                    // Store initial transform values
+                    if (Array.isArray(selectedElement)) {
+                        setInitialTransform((pre) => ({
+                            initCX:
+                                transformControls[0].x +
+                                (transformControls[2].x -
+                                    transformControls[0].x) /
+                                    2, //x + width / 2
+                            initCY:
+                                transformControls[0].y +
+                                (transformControls[3].y -
+                                    transformControls[0].y) /
+                                    2,
+                            initX: transformControls[0].x,
+                            initY: transformControls[0].y,
+                            mousePressX: mouseCoords.x,
+                            mousePressY: mouseCoords.y,
+                            initW:
+                                transformControls[2].x - transformControls[0].x,
+                            initH:
+                                transformControls[3].y - transformControls[0].y,
+                            selectedElementsInitialValues: elements.map(
+                                (element, index) =>
+                                    selectedElement.includes(index)
+                                        ? { ...element }
+                                        : null
+                            ),
+                        }));
+                    } else {
+                        setInitialTransform((pre) => ({
+                            initCX:
+                                elements[selectedElement].x +
+                                elements[selectedElement].width / 2, //x + width / 2
+                            initCY:
+                                elements[selectedElement].y +
+                                elements[selectedElement].height / 2,
+                            initX: elements[selectedElement].x,
+                            initY: elements[selectedElement].y,
+                            mousePressX: mouseCoords.x,
+                            mousePressY: mouseCoords.y,
+                            initW: elements[selectedElement].width,
+                            initH: elements[selectedElement].height,
+                        }));
+                    }
                     if (selectedControl === 4) {
                         setAction("rotating");
                         return;
                     }
 
                     setAction("resizing");
-                    //
-                    setInitialTransform((pre) => ({
-                        initX:
-                            elements[selectedElement].x +
-                            elements[selectedElement].width / 2, //x + width / 2
-                        initY:
-                            elements[selectedElement].y +
-                            elements[selectedElement].height / 2,
-                        mousePressX: mouseCoords.x,
-                        mousePressY: mouseCoords.y,
-                        initW: elements[selectedElement].width,
-                        initH: elements[selectedElement].height,
-                    }));
                 }
                 if (
                     hoveredElementIndex > 0 ||
@@ -273,14 +306,98 @@ export default function Canvas() {
                     xResize = false,
                     yResize = false
                 ) {
-                    setElements((pre) => {
-                        const preCopy = [...pre];
-                        const { rotationAngle } = preCopy[selectedElement];
+                    if (Array.isArray(selectedElement)) {
+                        const {
+                            initW,
+                            initX,
+                            selectedElementsInitialValues,
+                            initH,
+                            initY,
+                        } = initialTransform;
+                        const { newW, newH, newx, newy } = getResize(
+                            0,
+                            left,
+                            top,
+                            xResize,
+                            yResize
+                        );
+                        // const scaleFactor =
+                        //     (newx - newW / 2 + newW) / (initX + initW); // Divide new width by initial width to get scale factor
+                        let scaleFactor = newW / initW; // Divide new width by initial width to get scale factor
+                        setElements((pre) => {
+                            const preCopy = [...pre];
+                            let originX, originY;
+                            selectedElement.forEach((index) => {
+                                const { x, y, width, height } =
+                                    selectedElementsInitialValues[index];
+                                let nx, ny, nw, nh;
+
+                                switch (selectedResizeControl) {
+                                    case 0:
+                                        originX = newx - newW / 2 + newW;
+                                        originY = newy - newH / 2 + newH;
+                                        break;
+                                    case 1:
+                                        originX = newx - newW / 2;
+                                        originY = newy - newH / 2;
+                                        break;
+                                    case 2:
+                                        originX = newx - newW / 2;
+                                        originY = newy - newH / 2 + newH;
+                                        break;
+                                    case 3:
+                                        originX = newx - newW / 2 + newW;
+                                        originY = newy - newH / 2;
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                nx = (x - originX) * scaleFactor; // Subtract element.x from the origin before scaling
+                                ny = (y - originY) * scaleFactor;
+                                nw = (x - originX + width) * scaleFactor - nx; // Subtract scaled top left corner from scaled x to get width
+                                nh = (y - originY + height) * scaleFactor - ny; // Subtract scaled bottom left corner from scaled y to get height
+
+                                preCopy[index].x = nx + originX; // Add origin back to the scaled values
+                                preCopy[index].y = ny + originY;
+                                preCopy[index].width = nw;
+                                preCopy[index].height = nh;
+                            });
+                            return preCopy;
+                        });
+                    } else {
+                        setElements((pre) => {
+                            const preCopy = [...pre];
+                            const { rotationAngle } = preCopy[selectedElement];
+                            const { newW, newH, newx, newy } = getResize(
+                                rotationAngle,
+                                left,
+                                top,
+                                xResize,
+                                yResize
+                            );
+                            preCopy[selectedElement].x = newx - newW / 2;
+                            preCopy[selectedElement].y = newy - newH / 2;
+                            preCopy[selectedElement].width = newW;
+                            preCopy[selectedElement].height = newH;
+                            return preCopy;
+                        });
+                    }
+
+                    function getResize(
+                        rotationAngle,
+                        left,
+                        top,
+                        xResize,
+                        yResize
+                    ) {
                         const {
                             initW,
                             initH,
                             mousePressX,
                             mousePressY,
+                            initCX,
+                            initCY,
                             initX,
                             initY,
                         } = initialTransform;
@@ -296,8 +413,8 @@ export default function Canvas() {
                             cosFraction * hDiff - sinFraction * wDiff;
                         let newW = initW,
                             newH = initH,
-                            newx = initX,
-                            newy = initY;
+                            newx = initCX,
+                            newy = initCY;
 
                         //calculate width and height
                         if (xResize) {
@@ -345,31 +462,94 @@ export default function Canvas() {
                             newy += 0.5 * rotatedHDiff * cosFraction;
                         }
 
-                        preCopy[selectedElement].x = newx - newW / 2;
-                        preCopy[selectedElement].y = newy - newH / 2;
-                        preCopy[selectedElement].width = newW;
-                        preCopy[selectedElement].height = newH;
-                        return preCopy;
-                    });
+                        return { newW, newH, newx, newy };
+                    }
                 }
             }
             if (action === "rotating") {
                 setElements((pre) => {
                     const preCopy = [...pre];
-                    const { x, y, width, height, rotationAngle } =
-                        preCopy[selectedElement];
-                    const cx = x + width / 2;
-                    const cy = y + height / 2;
+                    if (Array.isArray(selectedElement)) {
+                        const {
+                            initW,
+                            initX,
+                            selectedElementsInitialValues,
+                            initH,
+                            initY,
+                            initCX,
+                            initCY,
+                        } = initialTransform;
 
-                    const a1 = Math.atan2(
-                        y - cy - 20 / scale,
-                        x - cx + width / 2
-                    );
-                    const angle = Math.atan2(
-                        mouseCoords.y - cy,
-                        mouseCoords.x - cx
-                    );
-                    preCopy[selectedElement].rotationAngle = angle - a1;
+                        selectedElement.forEach((index) => {
+                            const { x, y, width, height, rotationAngle } =
+                                selectedElementsInitialValues[index];
+
+                            // offset from center of bounding box
+                            const offset = Math.atan2(
+                                initY - initCY - 20 / scale,
+                                initX - initCX + initW / 2
+                            );
+                            // Angle of rotation of bounding box
+                            const angle = Math.atan2(
+                                mouseCoords.y - initCY,
+                                mouseCoords.x - initCX
+                            );
+                            // Rotate around center of bounding box
+                            const topLeft = rotate(
+                                x,
+                                y,
+                                initCX,
+                                initCY,
+                                angle - offset
+                            );
+                            const bottomRight = rotate(
+                                x + width,
+                                y + height,
+                                initCX,
+                                initCY,
+                                angle - offset
+                            );
+                            const diagonalMidpoint = calculateMidpoint(
+                                topLeft[0],
+                                topLeft[1],
+                                bottomRight[0],
+                                bottomRight[1]
+                            );
+                            const cx = diagonalMidpoint[0]; // Get new center of element
+                            const cy = diagonalMidpoint[1];
+
+                            // Unrotate around center of element to get new position
+                            const newTopLeft = rotate(
+                                topLeft[0],
+                                topLeft[1],
+                                cx,
+                                cy,
+                                (angle - offset) * -1
+                            );
+
+                            preCopy[index].x = newTopLeft[0];
+                            preCopy[index].y = newTopLeft[1];
+                            preCopy[index].rotationAngle =
+                                angle - offset + rotationAngle;
+                        });
+                    } else {
+                        const { x, y, width, height } =
+                            preCopy[selectedElement];
+
+                        const cx = x + width / 2;
+                        const cy = y + height / 2;
+
+                        const offset = Math.atan2(
+                            y - cy - 20 / scale,
+                            x - cx + width / 2
+                        );
+                        const angle = Math.atan2(
+                            mouseCoords.y - cy,
+                            mouseCoords.x - cx
+                        );
+                        preCopy[selectedElement].rotationAngle = angle - offset;
+                    }
+
                     return preCopy;
                 });
             }
@@ -685,7 +865,7 @@ export default function Canvas() {
                 height
             );
 
-            // Draw outline and transform controls
+            // Draw outline and transform controls for single selected element
             if (index === selectedElement) {
                 // Draw line for rotate control
                 ctx.strokeStyle = "#50C4FF";
@@ -798,6 +978,108 @@ export default function Canvas() {
             ctx.translate(-cx, -cy);
         });
 
+        // Draw outline and transform for multiple selected elements
+        if (Array.isArray(selectedElement) && selectedElement.length > 0) {
+            const selectedEls = elements.filter((element, index) =>
+                selectedElement.includes(index) ? element : null
+            );
+            if (selectedEls.length !== 0) {
+                let minX = Infinity;
+                let minY = Infinity;
+                let maxX = -Infinity;
+                let maxY = -Infinity;
+
+                // Iterate through each image to find the minimum and maximum coordinates
+                for (let i = 0; i < selectedEls.length; i++) {
+                    let image = selectedEls[i];
+                    let bbox = getRotatedBoundingBox(image);
+                    minX = Math.min(minX, bbox.minX);
+                    minY = Math.min(minY, bbox.minY);
+                    maxX = Math.max(maxX, bbox.minX + bbox.width);
+                    maxY = Math.max(maxY, bbox.minY + bbox.height);
+                }
+
+                // Adjusting for panOffset and scale
+                let adjustedX = minX;
+                let adjustedY = minY;
+                let adjustedWidth = maxX - minX;
+                let adjustedHeight = maxY - minY;
+
+                // Draw outline
+                ctx.strokeStyle = "#50C4FF";
+                ctx.lineWidth = 1 / scale;
+                ctx.strokeRect(
+                    adjustedX,
+                    adjustedY,
+                    adjustedWidth,
+                    adjustedHeight
+                );
+
+                let x = adjustedX,
+                    y = adjustedY,
+                    width = adjustedWidth,
+                    height = adjustedHeight;
+                const controlSize = 10 / scale;
+
+                const controllers = [
+                    {
+                        x: x,
+                        y: y,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Top-left
+                    {
+                        x: x + width,
+                        y: y + height,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Bottom-right
+                    {
+                        x: x + width,
+                        y: y,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Top-right
+                    {
+                        x: x,
+                        y: y + height,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Bottom-left
+                    {
+                        x: x + width / 2,
+                        y: y - 20 / scale,
+                        width: controlSize,
+                        height: controlSize,
+                    }, // Rotate control
+                    // {
+                    //     x: x + width / 2,
+                    //     y: y + height / 2,
+                    //     width: controlSize,
+                    //     height: controlSize,
+                    // },
+                ];
+                setTransformControls(() => controllers);
+
+                // Draw line for rotate control
+                ctx.strokeStyle = "#50C4FF";
+                ctx.lineWidth = 1 / scale;
+                ctx.beginPath();
+                ctx.moveTo((x + (x + width)) / 2, y);
+                ctx.lineTo((x + (x + width)) / 2, y - 20 / scale);
+                ctx.stroke();
+                // Draw controls
+                ctx.fillStyle = "#50C4FF";
+                controllers.forEach(({ x, y }) => {
+                    // Draw circle with origin point in center and diameter of 10 / scale
+                    ctx.beginPath();
+                    ctx.arc(x, y, 10 / scale / 2, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    ctx.fill(); // Add fill to the circle
+                });
+            }
+        }
+
         // Draw grid
         ctx.strokeStyle = "red";
         ctx.lineWidth = 1 / scale;
@@ -833,7 +1115,12 @@ export default function Canvas() {
         };
     }
 
-    //
+    // Get midpoint of two points
+    function calculateMidpoint(x1, y1, x2, y2) {
+        var xMidpoint = (x1 + x2) / 2;
+        var yMidpoint = (y1 + y2) / 2;
+        return [xMidpoint, yMidpoint];
+    }
     function rotate(x, y, cx, cy, angle) {
         return [
             (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
