@@ -61,7 +61,8 @@ const cursorType = (position) => {
         case 3:
             return "cursor-nesw-resize";
         case 4:
-            return "cursor-nesw-resize";
+        case 5:
+            return "cursor-move";
         default:
             return "cursor-auto";
     }
@@ -221,9 +222,10 @@ export default function Canvas() {
                 }
                 if (
                     hoveredElementIndex > 0 ||
-                    hoveredElementIndex !== undefined
+                    hoveredElementIndex !== undefined ||
+                    selectedControl === 5
                 ) {
-                    if (selectedControl === -1) {
+                    if (selectedControl === -1 || selectedControl === 5) {
                         // Move selected element to last to render on top
                         setElements((pre) => {
                             const preCopy = [...pre];
@@ -234,12 +236,30 @@ export default function Canvas() {
                             preCopy.push(movedElement);
                             return preCopy;
                         });
-
                         // Set DragStart to hovered/selected Element
-                        setDragStart({
-                            x: elements[hoveredElementIndex].x * scale - mouseX,
-                            y: elements[hoveredElementIndex].y * scale - mouseY,
-                        });
+                        if (Array.isArray(selectedElement)) {
+                            setDragStart({
+                                x: elements.map((element, index) =>
+                                    selectedElement.includes(index)
+                                        ? element.x - mouseCoords.x
+                                        : null
+                                ),
+                                y: elements.map((element, index) =>
+                                    selectedElement.includes(index)
+                                        ? element.y - mouseCoords.y
+                                        : null
+                                ),
+                            });
+                        } else {
+                            setDragStart({
+                                x:
+                                    elements[elements.length - 1].x -
+                                    mouseCoords.x,
+                                y:
+                                    elements[elements.length - 1].y -
+                                    mouseCoords.y,
+                            });
+                        }
 
                         // if a resize control is selected, cancel drag | Prioritize resize action & cursor3
                         setAction("dragging");
@@ -270,19 +290,21 @@ export default function Canvas() {
             }
 
             if (action === "dragging") {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                const mouseX = (event.clientX - rect.left) * scaleX;
-                const mouseY = (event.clientY - rect.top) * scaleY;
-
                 setElements((pre) => {
                     const preCopy = [...pre];
-                    preCopy[preCopy.length - 1].x =
-                        (mouseX + dragStart.x) / scale;
-                    preCopy[preCopy.length - 1].y =
-                        (mouseY + dragStart.y) / scale;
-
+                    if (Array.isArray(selectedElement)) {
+                        selectedElement.forEach((index) => {
+                            preCopy[index].x =
+                                mouseCoords.x + dragStart.x[index];
+                            preCopy[index].y =
+                                mouseCoords.y + dragStart.y[index];
+                        });
+                    } else {
+                        preCopy[preCopy.length - 1].x =
+                            mouseCoords.x + dragStart.x;
+                        preCopy[preCopy.length - 1].y =
+                            mouseCoords.y + dragStart.y;
+                    }
                     return preCopy;
                 });
             }
@@ -582,15 +604,6 @@ export default function Canvas() {
                     return preCopy;
                 });
             });
-            if (Array.isArray(selectedElement)) {
-                hovering = isOntopOfElement(mouseCoords.x, mouseCoords.y, {
-                    x: transformControls[0].x,
-                    y: transformControls[0].y,
-                    width: transformControls[2].x - transformControls[0].x,
-                    height: transformControls[3].y - transformControls[0].y,
-                    rotationAngle: 0,
-                });
-            }
 
             // Check if mouse is hovering inside any resize control
             let selectedControl = getTransformControl(mouseCoords);
@@ -1061,12 +1074,12 @@ export default function Canvas() {
                         width: controlSize,
                         height: controlSize,
                     }, // Rotate control
-                    // {
-                    //     x: x + width / 2,
-                    //     y: y + height / 2,
-                    //     width: controlSize,
-                    //     height: controlSize,
-                    // },
+                    {
+                        x: x + width / 2,
+                        y: y + height / 2,
+                        width: controlSize,
+                        height: controlSize,
+                    },
                 ];
                 setTransformControls(() => controllers);
 
