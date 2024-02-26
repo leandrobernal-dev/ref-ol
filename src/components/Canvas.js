@@ -582,6 +582,15 @@ export default function Canvas() {
                     return preCopy;
                 });
             });
+            if (Array.isArray(selectedElement)) {
+                hovering = isOntopOfElement(mouseCoords.x, mouseCoords.y, {
+                    x: transformControls[0].x,
+                    y: transformControls[0].y,
+                    width: transformControls[2].x - transformControls[0].x,
+                    height: transformControls[3].y - transformControls[0].y,
+                    rotationAngle: 0,
+                });
+            }
 
             // Check if mouse is hovering inside any resize control
             let selectedControl = getTransformControl(mouseCoords);
