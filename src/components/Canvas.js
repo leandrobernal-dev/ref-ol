@@ -598,7 +598,7 @@ export default function Canvas() {
                         } else if (hovering) {
                             return "cursor-move";
                         }
-                        return "cursor-grab";
+                        return "cursor-auto";
                 }
             });
         }
