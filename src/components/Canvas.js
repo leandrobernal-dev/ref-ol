@@ -204,7 +204,14 @@ export default function Canvas() {
                                       } else if (
                                           clickedElements.includes(element.id)
                                       ) {
-                                          isSelected = true;
+                                          if (
+                                              clickedElements[
+                                                  clickedElements.length - 1
+                                              ] === element.id ||
+                                              element.selected
+                                          ) {
+                                              isSelected = true;
+                                          }
                                       }
                                   } else {
                                       // If shift key is pressed, select multiple elements
