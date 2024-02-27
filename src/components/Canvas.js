@@ -78,18 +78,8 @@ export default function Canvas() {
     const [windowSize, setWindowSize] = useState(null);
 
     const [elements, setElements] = useState([]);
-    const [selectedElement, setSelectedElement] = useState([0, 1]); // Selected Element index
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-    const [initialTransform, setInitialTransform] = useState({
-        initW: 0,
-        initH: 0,
-        mousePressX: 0,
-        mousePressY: 0,
-        initCX: 0,
-        initCY: 0,
-        initX: 0,
-        initY: 0,
-    });
+    const [initialTransform, setInitialTransform] = useState({});
     const [cursor, setCursor] = useState("cursor-auto");
     const [transformControls, setTransformControls] = useState([]);
     const [selectedTransformControl, setSelectedTransformControl] =
@@ -169,19 +159,33 @@ export default function Canvas() {
                     .filter((element) => element !== null);
 
                 // If multiple elements are selected, check if mouse is over any of the selected elements for multi-element drag
-                const multiDrag = elements.some((element) => element.selected)
-                    ? isOntopOfElement(mouseCoords.x, mouseCoords.y, {
-                          x: transformControls[0].x,
-                          y: transformControls[0].y,
-                          width:
-                              transformControls[1].x - transformControls[0].x,
-                          height:
-                              transformControls[3].y - transformControls[0].y,
-                          rotationAngle: 0,
-                      })
-                    : false;
+                const multiDrag =
+                    elements.reduce(
+                        (count, element) =>
+                            element.selected ? count + 1 : count,
+                        0
+                    ) > 1
+                        ? isOntopOfElement(mouseCoords.x, mouseCoords.y, {
+                              x: transformControls[0].x,
+                              y: transformControls[0].y,
+                              width:
+                                  transformControls[1].x -
+                                  transformControls[0].x,
+                              height:
+                                  transformControls[3].y -
+                                  transformControls[0].y,
+                              rotationAngle: 0,
+                          })
+                        : false;
                 // Set selected elements logic | If no control is selected, select elements
-                if (selectedControl === -1 || multiDrag) {
+                if (selectedControl === -1) {
+                    if (!(clickedElements.length > 0 || multiDrag)) {
+                        setInitialTransform(() => ({
+                            x: mouseCoords.x,
+                            y: mouseCoords.y,
+                        }));
+                        setAction("dragselect");
+                    }
                     setElements((pre) => {
                         const newElements = !multiDrag
                             ? pre.map((element) => {
@@ -212,7 +216,7 @@ export default function Canvas() {
                                               element.selected
                                           ) {
                                               if (element.selected) {
-                                                  console.log(element.id);
+                                                  //   console.log(element.id);
                                               }
                                               isSelected = true;
                                           }
@@ -235,7 +239,7 @@ export default function Canvas() {
                             .filter((index) => index !== null);
 
                         // Move selected elements to the end of the array
-                        if (!multiDrag) {
+                        if (selectedEls.length < 2) {
                             selectedEls.forEach((index) => {
                                 const moveElement = newElements.splice(
                                     index,
@@ -245,19 +249,16 @@ export default function Canvas() {
                             });
                         }
 
-                        if (
-                            selectedEls.length > 0 &&
-                            (selectedControl === -1 || multiDrag)
-                        ) {
+                        if (selectedEls.length > 0 && selectedControl === -1) {
                             // Set DragStart
                             if (selectedEls.length > 1) {
                                 setDragStart({
-                                    x: elements.map((element, index) =>
+                                    x: newElements.map((element, index) =>
                                         element.selected
                                             ? element.x - mouseCoords.x
                                             : null
                                     ),
-                                    y: elements.map((element, index) =>
+                                    y: newElements.map((element, index) =>
                                         element.selected
                                             ? element.y - mouseCoords.y
                                             : null
@@ -345,7 +346,44 @@ export default function Canvas() {
                 createElement(newElement);
             }
         }
+        function getSelectedObjects(objectsArray, selectionBox) {
+            let selectedObjectIndices = [];
 
+            // Determine the boundaries of the selection box
+            let selectionLeft = Math.min(
+                selectionBox.x,
+                selectionBox.x + selectionBox.width
+            );
+            let selectionRight = Math.max(
+                selectionBox.x,
+                selectionBox.x + selectionBox.width
+            );
+            let selectionTop = Math.min(
+                selectionBox.y,
+                selectionBox.y + selectionBox.height
+            );
+            let selectionBottom = Math.max(
+                selectionBox.y,
+                selectionBox.y + selectionBox.height
+            );
+
+            // Iterate through each object
+            for (let i = 0; i < objectsArray.length; i++) {
+                let obj = objectsArray[i];
+                // Check for intersection
+                if (
+                    obj.x < selectionRight &&
+                    obj.x + obj.width > selectionLeft &&
+                    obj.y < selectionBottom &&
+                    obj.y + obj.height > selectionTop
+                ) {
+                    // Object is inside or partially inside the selection box
+                    selectedObjectIndices.push(i);
+                }
+            }
+
+            return selectedObjectIndices;
+        }
         function handleMouseMove(event) {
             const mouseCoords = getMouseCoordinates(event);
 
@@ -355,7 +393,29 @@ export default function Canvas() {
                     y: prevPanOffset.y + event.movementY,
                 }));
             }
-
+            if (action === "dragselect") {
+                setInitialTransform((pre) => {
+                    const highlighted = getSelectedObjects(elements, {
+                        ...pre,
+                        width: mouseCoords.x - pre.x,
+                        height: mouseCoords.y - pre.y,
+                    });
+                    setElements((pre) => {
+                        const newElements = pre.map((element, index) => {
+                            return {
+                                ...element,
+                                selected: highlighted.includes(index),
+                            };
+                        });
+                        return newElements;
+                    });
+                    return {
+                        ...pre,
+                        width: mouseCoords.x - pre.x,
+                        height: mouseCoords.y - pre.y,
+                    };
+                });
+            }
             if (action === "dragging") {
                 setElements((pre) => {
                     const preCopy = [...pre];
@@ -679,15 +739,21 @@ export default function Canvas() {
             // Check if mouse is hovering inside any resize control
             let selectedControl = getTransformControl(mouseCoords);
 
-            const multiDrag = elements.some((element) => element.selected)
-                ? isOntopOfElement(mouseCoords.x, mouseCoords.y, {
-                      x: transformControls[0].x,
-                      y: transformControls[0].y,
-                      width: transformControls[1].x - transformControls[0].x,
-                      height: transformControls[3].y - transformControls[0].y,
-                      rotationAngle: 0,
-                  })
-                : false;
+            const multiDrag =
+                elements.reduce(
+                    (count, element) => (element.selected ? count + 1 : count),
+                    0
+                ) > 1
+                    ? isOntopOfElement(mouseCoords.x, mouseCoords.y, {
+                          x: transformControls[0].x,
+                          y: transformControls[0].y,
+                          width:
+                              transformControls[1].x - transformControls[0].x,
+                          height:
+                              transformControls[3].y - transformControls[0].y,
+                          rotationAngle: 0,
+                      })
+                    : false;
             setCursor(() => {
                 switch (action) {
                     case "resizing":
@@ -1178,6 +1244,28 @@ export default function Canvas() {
                     ctx.fill(); // Add fill to the circle
                 });
             }
+        }
+
+        // Draw dragselect highlight rect
+        if (action === "dragselect") {
+            ctx.strokeStyle = "#50C4FF";
+            ctx.lineWidth = 0.5 / scale;
+
+            // Draw translucent rect with less translucent outline
+            ctx.fillStyle = "rgba(80, 196, 255, 0.15)";
+            ctx.strokeStyle = "rgba(0, 169, 255, 1)";
+            ctx.fillRect(
+                initialTransform.x,
+                initialTransform.y,
+                initialTransform.width,
+                initialTransform.height
+            );
+            ctx.strokeRect(
+                initialTransform.x,
+                initialTransform.y,
+                initialTransform.width,
+                initialTransform.height
+            );
         }
 
         // Draw grid
