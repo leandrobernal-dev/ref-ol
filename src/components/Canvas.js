@@ -92,7 +92,8 @@ export default function Canvas() {
     });
     const [cursor, setCursor] = useState("cursor-auto");
     const [transformControls, setTransformControls] = useState([]);
-    const [selectedResizeControl, setSelectedResizeControl] = useState(-1);
+    const [selectedTransformControl, setSelectedTransformControl] =
+        useState(-1);
     const maxZoom = 3.0;
     const minZoom = 0.01;
     const minWidth = 20;
@@ -132,6 +133,9 @@ export default function Canvas() {
                 }));
             }
         }
+        let selectedElementIndexes = elements
+            .map((element, index) => (element.selected ? index : null))
+            .filter((index) => index !== null);
 
         function handleMouseDown(event) {
             const mouseCoords = getMouseCoordinates(event);
@@ -150,36 +154,143 @@ export default function Canvas() {
                 const mouseX = (event.clientX - rect.left) * scaleX;
                 const mouseY = (event.clientY - rect.top) * scaleY;
 
-                // Get clicked resize control
+                // Get clicked transform control
                 let selectedControl = getTransformControl(mouseCoords);
-                setSelectedResizeControl(selectedControl);
-
-                // Get all the element's indexes that are hovered
-                const hoveredElements = elements
-                    .map((element, index) => (element.isHovered ? index : null))
-                    .filter((element) => element !== null);
-                // Get the last index of the hovered elements
-                const hoveredElementIndex =
-                    hoveredElements[hoveredElements.length - 1];
-                const selectedElementIndex =
-                    hoveredElements.length > 0 ? elements.length - 1 : null;
-
-                setSelectedElement((pre) =>
-                    selectedControl !== -1 ? pre : selectedElementIndex
-                );
                 setTransformControls((pre) =>
                     selectedControl !== -1 ? pre : []
                 );
+                setSelectedTransformControl(selectedControl);
 
-                if (selectedControl !== -1) {
+                // Get all the element's id that are hovered
+                const clickedElements = elements
+                    .map((element, index) =>
+                        element.isHovered ? element.id : null
+                    )
+                    .filter((element) => element !== null);
+
+                // If multiple elements are selected, check if mouse is over any of the selected elements for multi-element drag
+                const multiDrag = elements.some((element) => element.selected)
+                    ? isOntopOfElement(mouseCoords.x, mouseCoords.y, {
+                          x: transformControls[0].x,
+                          y: transformControls[0].y,
+                          width:
+                              transformControls[1].x - transformControls[0].x,
+                          height:
+                              transformControls[3].y - transformControls[0].y,
+                          rotationAngle: 0,
+                      })
+                    : false;
+                // Set selected elements logic | If no control is selected, select elements
+                if (selectedControl === -1 || multiDrag) {
+                    setElements((pre) => {
+                        const newElements = !multiDrag
+                            ? pre.map((element) => {
+                                  let isSelected = false;
+                                  // If mouse is over multiple elements, select the last indexed element
+                                  if (clickedElements.length > 1) {
+                                      if (event.shiftKey) {
+                                          if (
+                                              clickedElements[
+                                                  clickedElements.length - 1
+                                              ] === element.id ||
+                                              element.selected
+                                          ) {
+                                              isSelected = true;
+                                          }
+                                      } else if (
+                                          clickedElements.includes(element.id)
+                                      ) {
+                                          isSelected = true;
+                                      }
+                                  } else {
+                                      // If shift key is pressed, select multiple elements
+                                      if (event.shiftKey) {
+                                          if (
+                                              clickedElements.includes(
+                                                  element.id
+                                              ) ||
+                                              element.selected
+                                          ) {
+                                              if (element.selected) {
+                                                  console.log(element.id);
+                                              }
+                                              isSelected = true;
+                                          }
+                                      } else if (
+                                          clickedElements.includes(element.id)
+                                      ) {
+                                          isSelected = true;
+                                      }
+                                  }
+                                  return {
+                                      ...element,
+                                      selected: isSelected,
+                                  };
+                              })
+                            : [...pre];
+                        const selectedEls = newElements
+                            .map((element, index) =>
+                                element.selected ? index : null
+                            )
+                            .filter((index) => index !== null);
+
+                        // Move selected elements to the end of the array
+                        if (!multiDrag) {
+                            selectedEls.forEach((index) => {
+                                const moveElement = newElements.splice(
+                                    index,
+                                    1
+                                )[0];
+                                newElements.push(moveElement);
+                            });
+                        }
+
+                        if (
+                            selectedEls.length > 0 &&
+                            (selectedControl === -1 || multiDrag)
+                        ) {
+                            // Set DragStart
+                            if (selectedEls.length > 1) {
+                                setDragStart({
+                                    x: elements.map((element, index) =>
+                                        element.selected
+                                            ? element.x - mouseCoords.x
+                                            : null
+                                    ),
+                                    y: elements.map((element, index) =>
+                                        element.selected
+                                            ? element.y - mouseCoords.y
+                                            : null
+                                    ),
+                                });
+                            } else {
+                                setDragStart({
+                                    x:
+                                        elements[
+                                            selectedEls[selectedEls.length - 1]
+                                        ].x - mouseCoords.x,
+                                    y:
+                                        elements[
+                                            selectedEls[selectedEls.length - 1]
+                                        ].y - mouseCoords.y,
+                                });
+                            }
+
+                            // if a resize control is selected, cancel drag | Prioritize resize action & cursor3
+                            setAction("dragging");
+                        }
+                        return newElements;
+                    });
+                } else {
+                    // If one of the contols is selected, store initial values and set action
                     // Store initial transform values
-                    if (Array.isArray(selectedElement)) {
+                    if (multipleElementSelected) {
                         setInitialTransform((pre) => ({
                             initCX:
                                 transformControls[0].x +
                                 (transformControls[2].x -
                                     transformControls[0].x) /
-                                    2, //x + width / 2
+                                    2,
                             initCY:
                                 transformControls[0].y +
                                 (transformControls[3].y -
@@ -195,25 +306,23 @@ export default function Canvas() {
                                 transformControls[3].y - transformControls[0].y,
                             selectedElementsInitialValues: elements.map(
                                 (element, index) =>
-                                    selectedElement.includes(index)
-                                        ? { ...element }
-                                        : null
+                                    element.selected ? { ...element } : null
                             ),
                         }));
                     } else {
                         setInitialTransform((pre) => ({
                             initCX:
-                                elements[selectedElement].x +
-                                elements[selectedElement].width / 2, //x + width / 2
+                                elements[selectedElementIndexes[0]].x +
+                                elements[selectedElementIndexes[0]].width / 2,
                             initCY:
-                                elements[selectedElement].y +
-                                elements[selectedElement].height / 2,
-                            initX: elements[selectedElement].x,
-                            initY: elements[selectedElement].y,
+                                elements[selectedElementIndexes[0]].y +
+                                elements[selectedElementIndexes[0]].height / 2,
+                            initX: elements[selectedElementIndexes[0]].x,
+                            initY: elements[selectedElementIndexes[0]].y,
                             mousePressX: mouseCoords.x,
                             mousePressY: mouseCoords.y,
-                            initW: elements[selectedElement].width,
-                            initH: elements[selectedElement].height,
+                            initW: elements[selectedElementIndexes[0]].width,
+                            initH: elements[selectedElementIndexes[0]].height,
                         }));
                     }
                     if (selectedControl === 4) {
@@ -222,51 +331,6 @@ export default function Canvas() {
                     }
 
                     setAction("resizing");
-                }
-                if (
-                    hoveredElementIndex > 0 ||
-                    hoveredElementIndex !== undefined ||
-                    selectedControl === 5
-                ) {
-                    if (selectedControl === -1 || selectedControl === 5) {
-                        // Move selected element to last to render on top
-                        setElements((pre) => {
-                            const preCopy = [...pre];
-                            const movedElement = preCopy.splice(
-                                hoveredElementIndex,
-                                1
-                            )[0];
-                            preCopy.push(movedElement);
-                            return preCopy;
-                        });
-                        // Set DragStart to hovered/selected Element
-                        if (Array.isArray(selectedElement)) {
-                            setDragStart({
-                                x: elements.map((element, index) =>
-                                    selectedElement.includes(index)
-                                        ? element.x - mouseCoords.x
-                                        : null
-                                ),
-                                y: elements.map((element, index) =>
-                                    selectedElement.includes(index)
-                                        ? element.y - mouseCoords.y
-                                        : null
-                                ),
-                            });
-                        } else {
-                            setDragStart({
-                                x:
-                                    elements[elements.length - 1].x -
-                                    mouseCoords.x,
-                                y:
-                                    elements[elements.length - 1].y -
-                                    mouseCoords.y,
-                            });
-                        }
-
-                        // if a resize control is selected, cancel drag | Prioritize resize action & cursor3
-                        setAction("dragging");
-                    }
                 }
             }
 
@@ -295,8 +359,8 @@ export default function Canvas() {
             if (action === "dragging") {
                 setElements((pre) => {
                     const preCopy = [...pre];
-                    if (Array.isArray(selectedElement)) {
-                        selectedElement.forEach((index) => {
+                    if (multipleElementSelected) {
+                        selectedElementIndexes.forEach((index) => {
                             preCopy[index].x =
                                 mouseCoords.x + dragStart.x[index];
                             preCopy[index].y =
@@ -313,7 +377,7 @@ export default function Canvas() {
             }
 
             if (action === "resizing") {
-                switch (selectedResizeControl) {
+                switch (selectedTransformControl) {
                     case 0:
                         resizeHandler(true, true, true, true);
                         break;
@@ -335,7 +399,7 @@ export default function Canvas() {
                     xResize = false,
                     yResize = false
                 ) {
-                    if (Array.isArray(selectedElement)) {
+                    if (multipleElementSelected) {
                         const {
                             initW,
                             initX,
@@ -356,12 +420,12 @@ export default function Canvas() {
                         setElements((pre) => {
                             const preCopy = [...pre];
                             let originX, originY;
-                            selectedElement.forEach((index) => {
+                            selectedElementIndexes.forEach((index) => {
                                 const { x, y, width, height } =
                                     selectedElementsInitialValues[index];
                                 let nx, ny, nw, nh;
 
-                                switch (selectedResizeControl) {
+                                switch (selectedTransformControl) {
                                     case 0:
                                         originX = newx - newW / 2 + newW;
                                         originY = newy - newH / 2 + newH;
@@ -397,7 +461,8 @@ export default function Canvas() {
                     } else {
                         setElements((pre) => {
                             const preCopy = [...pre];
-                            const { rotationAngle } = preCopy[selectedElement];
+                            const { rotationAngle } =
+                                preCopy[selectedElementIndexes[0]];
                             const { newW, newH, newx, newy } = getResize(
                                 rotationAngle,
                                 left,
@@ -405,10 +470,12 @@ export default function Canvas() {
                                 xResize,
                                 yResize
                             );
-                            preCopy[selectedElement].x = newx - newW / 2;
-                            preCopy[selectedElement].y = newy - newH / 2;
-                            preCopy[selectedElement].width = newW;
-                            preCopy[selectedElement].height = newH;
+                            preCopy[selectedElementIndexes[0]].x =
+                                newx - newW / 2;
+                            preCopy[selectedElementIndexes[0]].y =
+                                newy - newH / 2;
+                            preCopy[selectedElementIndexes[0]].width = newW;
+                            preCopy[selectedElementIndexes[0]].height = newH;
                             return preCopy;
                         });
                     }
@@ -498,7 +565,7 @@ export default function Canvas() {
             if (action === "rotating") {
                 setElements((pre) => {
                     const preCopy = [...pre];
-                    if (Array.isArray(selectedElement)) {
+                    if (multipleElementSelected) {
                         const {
                             initW,
                             initX,
@@ -509,7 +576,7 @@ export default function Canvas() {
                             initCY,
                         } = initialTransform;
 
-                        selectedElement.forEach((index) => {
+                        selectedElementIndexes.forEach((index) => {
                             const { x, y, width, height, rotationAngle } =
                                 selectedElementsInitialValues[index];
 
@@ -563,7 +630,7 @@ export default function Canvas() {
                         });
                     } else {
                         const { x, y, width, height } =
-                            preCopy[selectedElement];
+                            preCopy[selectedElementIndexes[0]];
 
                         const cx = x + width / 2;
                         const cy = y + height / 2;
@@ -576,7 +643,8 @@ export default function Canvas() {
                             mouseCoords.y - cy,
                             mouseCoords.x - cx
                         );
-                        preCopy[selectedElement].rotationAngle = angle - offset;
+                        preCopy[selectedElementIndexes[0]].rotationAngle =
+                            angle - offset;
                     }
 
                     return preCopy;
@@ -611,16 +679,25 @@ export default function Canvas() {
             // Check if mouse is hovering inside any resize control
             let selectedControl = getTransformControl(mouseCoords);
 
+            const multiDrag = elements.some((element) => element.selected)
+                ? isOntopOfElement(mouseCoords.x, mouseCoords.y, {
+                      x: transformControls[0].x,
+                      y: transformControls[0].y,
+                      width: transformControls[1].x - transformControls[0].x,
+                      height: transformControls[3].y - transformControls[0].y,
+                      rotationAngle: 0,
+                  })
+                : false;
             setCursor(() => {
                 switch (action) {
                     case "resizing":
-                        return cursorType(selectedResizeControl);
+                        return cursorType(selectedTransformControl);
                     case "panning":
                         return "cursor-grabbing";
                     default:
                         if (selectedControl !== -1) {
                             return cursorType(selectedControl);
-                        } else if (hovering) {
+                        } else if (hovering || multiDrag) {
                             return "cursor-move";
                         }
                         return "cursor-auto";
@@ -670,11 +747,16 @@ export default function Canvas() {
         elements,
         dragStart,
         scale,
-        selectedElement,
         transformControls,
-        selectedResizeControl,
+        selectedTransformControl,
         initialTransform,
     ]);
+
+    const multipleElementSelected =
+        elements.reduce(
+            (count, element) => (element.selected ? count + 1 : count),
+            0
+        ) > 1;
 
     function isOntopOfElement(mouseX, mouseY, element) {
         // Initialize the inside flag
@@ -792,7 +874,7 @@ export default function Canvas() {
         updateCanvas();
 
         ctx.restore();
-    }, [scale, panOffset, windowSize, elements, selectedElement, undo]);
+    }, [scale, panOffset, windowSize, elements, undo]);
     function getRotatedBoundingBox(image) {
         // Calculate the center point of the image
         let centerX = image.x + image.width / 2;
@@ -889,9 +971,8 @@ export default function Canvas() {
                 width,
                 height
             );
-
             // Draw outline and transform controls for single selected element
-            if (index === selectedElement) {
+            if (element.selected && !multipleElementSelected) {
                 // Draw line for rotate control
                 ctx.strokeStyle = "#50C4FF";
                 ctx.lineWidth = 1 / scale;
@@ -1004,9 +1085,9 @@ export default function Canvas() {
         });
 
         // Draw outline and transform for multiple selected elements
-        if (Array.isArray(selectedElement) && selectedElement.length > 0) {
+        if (multipleElementSelected) {
             const selectedEls = elements.filter((element, index) =>
-                selectedElement.includes(index) ? element : null
+                element.selected ? element : null
             );
             if (selectedEls.length !== 0) {
                 let minX = Infinity;
@@ -1077,12 +1158,6 @@ export default function Canvas() {
                         width: controlSize,
                         height: controlSize,
                     }, // Rotate control
-                    {
-                        x: x + width / 2,
-                        y: y + height / 2,
-                        width: controlSize,
-                        height: controlSize,
-                    },
                 ];
                 setTransformControls(() => controllers);
 
