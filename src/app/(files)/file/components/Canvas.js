@@ -4,22 +4,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import ImageElement from "@/app/(files)/file/classes/ImageElement";
 import { usePressedKeys } from "@/app/(files)/file/hooks/customHooks";
 import { cursorType } from "@/app/(files)/file/utilities/CursorUtils";
-import {
-    maxZoom,
-    minZoom,
-    minImageWidth,
-    minImageHeight,
-} from "@/app/(files)/file/config/config";
 import { ZoomHandler } from "@/app/(files)/file/handlers/ZoomHandler";
 import { MouseDownHandler } from "@/app/(files)/file/handlers/MouseDownHandler";
 import {
-    getHighlightedElements,
     getMouseCoordinates,
-    getRotatedBoundingBox,
     getTransformControl,
     isOntopOfElement,
     multipleElementSelected,
-    rotate,
 } from "@/app/(files)/file/utilities/CanvasUtils";
 import { PanHandler } from "@/app/(files)/file/handlers/PanHandler";
 import { DragSelectHandler } from "@/app/(files)/file/handlers/DragSelectHandler";
