@@ -334,8 +334,6 @@ export default function Canvas() {
             id="canvas"
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            // width={window.innerWidth}
-            // height={window.innerHeight}
             className={`fixed top-0 left-0 overflow-hidden ${cursor}`}
         ></canvas>
     );
