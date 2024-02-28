@@ -64,6 +64,8 @@ const cursorType = (position) => {
         case 3:
             return "cursor-nesw-resize";
         case 4:
+            return "cursor-crosshair";
+            return "cursor-rotate";
         case 5:
             return "cursor-move";
         default:
@@ -73,7 +75,7 @@ const cursorType = (position) => {
 
 export default function Canvas() {
     const canvasRef = useRef(null);
-    const [panOffset, setPanOffset] = useState({ x: 500, y: 300 });
+    const [panOffset, setPanOffset] = useState({ x: 200, y: 200 });
     const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
@@ -89,10 +91,11 @@ export default function Canvas() {
     const minWidth = 20;
     const minHeight = 20;
 
+    const [isLoaded, setIsLoaded] = useState(false);
+
     const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
     const pressedKeys = usePressedKeys();
-
     useEffect(() => {
         const canvas = canvasRef.current;
         const boundingRect = canvas.getBoundingClientRect();
@@ -138,11 +141,11 @@ export default function Canvas() {
             }
 
             if (event.button === 0) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                const mouseX = (event.clientX - rect.left) * scaleX;
-                const mouseY = (event.clientY - rect.top) * scaleY;
+                if (pressedKeys.has(" ")) {
+                    setCursor("cursor-grabbing");
+                    setAction("panning");
+                    return;
+                }
 
                 // Get clicked transform control
                 let selectedControl = getTransformControl(mouseCoords);
@@ -357,19 +360,19 @@ export default function Canvas() {
             let selectedObjectIndices = [];
 
             // Determine the boundaries of the selection box
-            let selectionLeft = Math.min(
+            let x = Math.min(
                 selectionBox.x,
                 selectionBox.x + selectionBox.width
             );
-            let selectionRight = Math.max(
+            let width = Math.max(
                 selectionBox.x,
                 selectionBox.x + selectionBox.width
             );
-            let selectionTop = Math.min(
+            let y = Math.min(
                 selectionBox.y,
                 selectionBox.y + selectionBox.height
             );
-            let selectionBottom = Math.max(
+            let height = Math.max(
                 selectionBox.y,
                 selectionBox.y + selectionBox.height
             );
@@ -377,12 +380,54 @@ export default function Canvas() {
             // Iterate through each object
             for (let i = 0; i < objectsArray.length; i++) {
                 let obj = objectsArray[i];
+                const cx = obj.x + obj.width / 2;
+                const cy = obj.y + obj.height / 2;
+                // Calculate the rotated coordinates of the rectangle's corners
+                let rotatedTopLeft = rotatePoint(
+                    obj.x,
+                    obj.y,
+                    cx,
+                    cy,
+                    obj.rotationAngle
+                );
+                let rotatedTopRight = rotatePoint(
+                    obj.x + obj.width,
+                    obj.y,
+                    cx,
+                    cy,
+                    obj.rotationAngle
+                );
+                let rotatedBottomLeft = rotatePoint(
+                    obj.x,
+                    obj.y + obj.height,
+                    cx,
+                    cy,
+                    obj.rotationAngle
+                );
+                let rotatedBottomRight = rotatePoint(
+                    obj.x + obj.width,
+                    obj.y + obj.height,
+                    cx,
+                    cy,
+                    obj.rotationAngle
+                );
+                console.log(
+                    rotatedTopLeft.x < x + width,
+                    rotatedTopRight.x > x,
+                    rotatedTopLeft.y < y + height,
+                    rotatedBottomRight.y > y
+                );
+
                 // Check for intersection
                 if (
-                    obj.x < selectionRight &&
-                    obj.x + obj.width > selectionLeft &&
-                    obj.y < selectionBottom &&
-                    obj.y + obj.height > selectionTop
+                    rotatedTopLeft.x < width &&
+                    rotatedTopRight.x > x &&
+                    rotatedTopLeft.y < height &&
+                    rotatedBottomLeft.y > y
+                    // rotatedTopLeft.x < x + width &&
+                    // rotatedTopRight.x > x &&
+                    // rotatedTopLeft.y < y + height &&
+                    // rotatedBottomRight.y > y
                 ) {
                     // Object is inside or partially inside the selection box
                     selectedObjectIndices.push(i);
@@ -391,6 +436,15 @@ export default function Canvas() {
 
             return selectedObjectIndices;
         }
+
+        // Function to rotate a point around another point
+        function rotatePoint(x, y, centerX, centerY, angle) {
+            return {
+                x: rotate(x, y, centerX, centerY, angle)[0],
+                y: rotate(x, y, centerX, centerY, angle)[1],
+            };
+        }
+
         function handleMouseMove(event) {
             const mouseCoords = getMouseCoordinates(event);
 
@@ -898,7 +952,22 @@ export default function Canvas() {
                 handleUndo();
             }
         }
-    }, [pressedKeys]);
+        if (pressedKeys.has("Delete")) {
+            const indexToDelete = elements
+                .map((element, index) => {
+                    return element.selected ? index : null;
+                })
+                .filter((index) => index !== null);
+            indexToDelete.forEach((index) => {
+                setElements((pre) => {
+                    const preCopy = [...pre];
+                    preCopy.splice(index, 1);
+                    // console.log(preCopy);
+                    return preCopy;
+                });
+            });
+        }
+    }, [pressedKeys, elements]);
 
     // Apply transformations to canvas context
     useLayoutEffect(() => {
@@ -1316,7 +1385,12 @@ export default function Canvas() {
         var yMidpoint = (y1 + y2) / 2;
         return [xMidpoint, yMidpoint];
     }
+    // Rotate a point around an origin
     function rotate(x, y, cx, cy, angle) {
+        // return [
+        //     Math.cos(angle) * (x - cx) - Math.sin(angle) * (y - cy) + cx,
+        //     Math.sin(angle) * (x - cx) + Math.cos(angle) * (y - cy) + cy,
+        // ];
         return [
             (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
             (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle) + cy,
@@ -1325,16 +1399,48 @@ export default function Canvas() {
 
     // SAMPLE ADD ELEMENT
     useEffect(() => {
-        const newElement = new ImageElement(
-            // "https://i.pinimg.com/564x/6d/be/cd/6dbecdc197af6b2a9278550bb31d4f8f.jpg",
-            // https://i.pinimg.com/564x/2d/d2/ab/2dd2abaf2d73de92bd383a77bd9f5880.jpg,
-            "https://i.pinimg.com/564x/40/cf/8f/40cf8ff8cf5d692f31439a71d6d69912.jpg",
-            0,
-            0
-        );
-        newElement.create();
-        createElement(newElement);
-    }, []);
+        return;
+        const src = [
+            // "https://i.pinimg.com/564x/2d/d2/ab/2dd2abaf2d73de92bd383a77bd9f5880.jpg",
+            // "https://i.pinimg.com/564x/40/cf/8f/40cf8ff8cf5d692f31439a71d6d69912.jpg",
+            "https://i.pinimg.com/564x/bc/a8/4a/bca84ac35691118605915ce656f2aa63.jpg",
+            "https://i.pinimg.com/564x/bc/a8/4a/bca84ac35691118605915ce656f2aa63.jpg",
+            "https://i.pinimg.com/564x/6d/be/cd/6dbecdc197af6b2a9278550bb31d4f8f.jpg",
+        ];
+        src.forEach((src, index) => {
+            if (index === 0) {
+                const newElement = new ImageElement(src[0], 100, 100);
+                newElement.create();
+                newElement.image.onload = () => {
+                    createElement(newElement);
+                };
+            } else if (index === 1) {
+                const newElement = new ImageElement(src[1], 700, 700);
+                newElement.create();
+                newElement.image.onload = () => {
+                    createElement(newElement);
+                };
+            } else if (index === 2) {
+                const newElement = new ImageElement(src[2], -600, 0);
+                newElement.create();
+                newElement.image.onload = () => {
+                    createElement(newElement);
+                };
+            }
+        });
+
+        setIsLoaded(true);
+
+        // const newElement = new ImageElement(
+        //     // "https://i.pinimg.com/564x/6d/be/cd/6dbecdc197af6b2a9278550bb31d4f8f.jpg",
+        //     // https://i.pinimg.com/564x/2d/d2/ab/2dd2abaf2d73de92bd383a77bd9f5880.jpg,
+        //     "https://i.pinimg.com/564x/40/cf/8f/40cf8ff8cf5d692f31439a71d6d69912.jpg",
+        //     0,
+        //     0
+        // );
+        // newElement.create();
+        // createElement(newElement);
+    }, [elements]);
 
     // Rerender when window resizes, disable default page zoom
     useEffect(() => {
@@ -1356,10 +1462,45 @@ export default function Canvas() {
         };
     }, []);
 
+    //
+    //
+    //
+    const handleDragOver = (e) => {
+        e.preventDefault();
+    };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const mouseCoords = getMouseCoordinates(e);
+
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imageData = event.target.result;
+                const image = new Image();
+                image.src = imageData;
+                image.onload = () => {
+                    const newElement = new ImageElement(
+                        imageData,
+                        mouseCoords.x - image.width / 2,
+                        mouseCoords.y - image.height / 2
+                    );
+                    newElement.create();
+                    createElement(newElement);
+                    console.log(image.width, image.height);
+                };
+            };
+            reader.readAsDataURL(file);
+        } else {
+            console.log("Please drop an image file.");
+        }
+    };
     return (
         <canvas
             ref={canvasRef}
             id="canvas"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
             // width={window.innerWidth}
             // height={window.innerHeight}
             className={`fixed top-0 left-0 overflow-hidden ${cursor}`}
