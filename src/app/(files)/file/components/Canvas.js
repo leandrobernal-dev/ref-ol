@@ -18,6 +18,10 @@ import { DragHandler } from "@/app/(files)/file/handlers/DragHandler";
 import { ResizeHandler } from "@/app/(files)/file/handlers/ResizeHandler";
 import { RotateHandler } from "@/app/(files)/file/handlers/RotateHandler";
 import { updateCanvas } from "@/app/(files)/file/utilities/CanvasDrawing";
+import useHistory, {
+    AddCommand,
+    DeleteCommand,
+} from "@/app/(files)/file/hooks/useHistory";
 
 export default function Canvas() {
     const canvasRef = useRef(null);
@@ -26,6 +30,8 @@ export default function Canvas() {
     const [windowSize, setWindowSize] = useState(null);
 
     const [elements, setElements] = useState([]);
+    const { executeCommand, undo, redo } = useHistory(elements, setElements);
+    const [initialValues, setInitialValues] = useState([]);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [initialTransform, setInitialTransform] = useState({});
     const [cursor, setCursor] = useState("cursor-auto");
@@ -58,6 +64,7 @@ export default function Canvas() {
                 panOffset,
                 scale
             );
+            setInitialValues(elements);
             MouseDownHandler(
                 event,
                 elements,
@@ -72,7 +79,8 @@ export default function Canvas() {
                 selectedElementIndexes,
                 setDragStart,
                 pressedKeys,
-                createElement
+                createElement,
+                setInitialValues
             );
         }
 
@@ -218,38 +226,8 @@ export default function Canvas() {
         transformControls,
         selectedTransformControl,
         initialTransform,
+        initialValues,
     ]);
-
-    //
-    function handleUndo() {
-        if (!undo.length) return;
-
-        const prev = undo.pop();
-        // setUndo([...undo, elements]);
-        setElements([prev]);
-    }
-    useEffect(() => {
-        if (pressedKeys.has("Control")) {
-            if (pressedKeys.has("z") || pressedKeys.has("Z")) {
-                handleUndo();
-            }
-        }
-        if (pressedKeys.has("Delete")) {
-            const indexToDelete = elements
-                .map((element, index) => {
-                    return element.selected ? index : null;
-                })
-                .filter((index) => index !== null);
-            indexToDelete.forEach((index) => {
-                setElements((pre) => {
-                    const preCopy = [...pre];
-                    preCopy.splice(index, 1);
-                    // console.log(preCopy);
-                    return preCopy;
-                });
-            });
-        }
-    }, [pressedKeys, elements]);
 
     // Apply transformations to canvas context
     useLayoutEffect(() => {
@@ -264,38 +242,44 @@ export default function Canvas() {
             setTransformControls,
             panOffset
         );
-    }, [scale, panOffset, windowSize, elements, undo]);
+    }, [scale, panOffset, windowSize, elements]);
 
-    function createElement(newElement) {
-        const elementsCopy = [...elements];
-        elementsCopy[elements.length] = newElement;
-        setElements(elementsCopy, true);
-        setUndo([...undo, ...elementsCopy]);
-    }
-
-    // Rerender when window resizes, disable default page zoom
     useEffect(() => {
-        const handleResize = () => {
-            setWindowSize({
-                width: window.innerWidth,
-                height: window.innerHeight,
-            });
-        };
-        const handleWheel = (event) => {
-            event.preventDefault();
-        };
-        window.addEventListener("resize", handleResize);
-        window.addEventListener("wheel", handleWheel, { passive: false });
+        if (pressedKeys.has("Control")) {
+            if (pressedKeys.has("z") || pressedKeys.has("Z")) {
+                undo();
+            }
+            if (pressedKeys.has("y") || pressedKeys.has("Y")) {
+                redo();
+            }
+        }
+        if (pressedKeys.has("Delete")) {
+            const indexToDelete = elements
+                .map((element) => {
+                    return element.selected ? element.id : null;
+                })
+                .filter((id) => id !== null);
 
-        return () => {
-            window.removeEventListener("resize", handleResize);
-            window.removeEventListener("wheel", handleWheel);
-        };
-    }, []);
+            if (indexToDelete.length === 0) return;
+            const deleteCommand = new DeleteCommand(
+                indexToDelete,
+                elements,
+                setElements
+            );
+            executeCommand(deleteCommand);
+        }
+    }, [pressedKeys]);
 
     const handleDragOver = (e) => {
         e.preventDefault();
     };
+    function createElement(newElement) {
+        const elementsCopy = [...elements];
+        elementsCopy[elements.length] = newElement;
+        const addCommand = new AddCommand(newElement, setElements);
+        executeCommand(addCommand);
+        setElements(elementsCopy, true);
+    }
     const handleDrop = (e) => {
         e.preventDefault();
         const mouseCoords = getMouseCoordinates(
@@ -320,7 +304,6 @@ export default function Canvas() {
                     );
                     newElement.create();
                     createElement(newElement);
-                    console.log(image.width, image.height);
                 };
             };
             reader.readAsDataURL(file);
@@ -328,6 +311,27 @@ export default function Canvas() {
             console.log("Please drop an image file.");
         }
     };
+
+    // Rerender when window resizes, disable default page zoom
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+        const handleWheel = (event) => {
+            event.preventDefault();
+        };
+        window.addEventListener("resize", handleResize);
+        window.addEventListener("wheel", handleWheel, { passive: false });
+
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            window.removeEventListener("wheel", handleWheel);
+        };
+    }, []);
+
     return (
         <canvas
             ref={canvasRef}
