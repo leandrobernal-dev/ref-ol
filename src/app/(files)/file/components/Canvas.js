@@ -33,6 +33,7 @@ export default function Canvas() {
     const { executeCommand, undo, redo } = useHistory(elements, setElements);
     const [initialValues, setInitialValues] = useState([]);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
     const [initialTransform, setInitialTransform] = useState({});
     const [cursor, setCursor] = useState("cursor-auto");
     const [transformControls, setTransformControls] = useState([]);
@@ -91,6 +92,7 @@ export default function Canvas() {
                 panOffset,
                 scale
             );
+            setMouseCoords(mouseCoords);
 
             if (action === "panning") {
                 PanHandler(event, setPanOffset);
@@ -98,6 +100,7 @@ export default function Canvas() {
             if (action === "dragselect") {
                 DragSelectHandler(
                     setInitialTransform,
+                    initialTransform,
                     setElements,
                     elements,
                     mouseCoords
@@ -228,6 +231,36 @@ export default function Canvas() {
         initialTransform,
         initialValues,
     ]);
+
+    // setting drag start
+    useEffect(() => {
+        const selectedEls = elements
+            .map((element, index) =>
+                element.selected ? { element, index } : null
+            )
+            .filter((element) => element !== null);
+        // Set DragStart
+        if (action !== "dragging") return;
+        if (selectedEls.length > 1) {
+            setDragStart({
+                x: elements.map((element, index) =>
+                    element.selected ? element.x - mouseCoords.x : null
+                ),
+                y: elements.map((element, index) =>
+                    element.selected ? element.y - mouseCoords.y : null
+                ),
+            });
+        } else {
+            setDragStart(() => ({
+                x:
+                    elements[selectedEls[selectedEls.length - 1].index].x -
+                    mouseCoords.x,
+                y:
+                    elements[selectedEls[selectedEls.length - 1].index].y -
+                    mouseCoords.y,
+            }));
+        }
+    }, [elements]);
 
     // Apply transformations to canvas context
     useLayoutEffect(() => {

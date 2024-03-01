@@ -121,48 +121,27 @@ export function MouseDownHandler(
                       })
                     : [...pre];
                 const selectedEls = newElements
-                    .map((element, index) => (element.selected ? index : null))
-                    .filter((index) => index !== null);
+                    .map((element, index) =>
+                        element.selected ? { element, index } : null
+                    )
+                    .filter((element) => element !== null);
 
                 // Move selected elements to the end of the array
                 if (selectedEls.length < 2) {
-                    selectedEls.forEach((index) => {
-                        const moveElement = newElements.splice(index, 1)[0];
+                    selectedEls.forEach((element) => {
+                        const moveElement = newElements.splice(
+                            element.index,
+                            1
+                        )[0];
                         newElements.push(moveElement);
                     });
                 }
 
-                if (selectedEls.length > 0 && selectedControl === -1) {
-                    // Set DragStart
-                    if (selectedEls.length > 1) {
-                        setDragStart({
-                            x: newElements.map((element, index) =>
-                                element.selected
-                                    ? element.x - mouseCoords.x
-                                    : null
-                            ),
-                            y: newElements.map((element, index) =>
-                                element.selected
-                                    ? element.y - mouseCoords.y
-                                    : null
-                            ),
-                        });
-                    } else {
-                        setDragStart({
-                            x:
-                                elements[selectedEls[selectedEls.length - 1]]
-                                    .x - mouseCoords.x,
-                            y:
-                                elements[selectedEls[selectedEls.length - 1]]
-                                    .y - mouseCoords.y,
-                        });
-                    }
-
-                    // if a resize control is selected, cancel drag | Prioritize resize action & cursor3
-                    setAction("dragging");
-                }
                 return newElements;
             });
+            if (multiDrag || clickedElements.length > 0) {
+                setAction("dragging");
+            }
         } else {
             // If one of the contols is selected, store initial values and set action
             // Store initial transform values
