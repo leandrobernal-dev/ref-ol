@@ -122,6 +122,33 @@ class ResizeCommand {
     }
 }
 
+class SelectCommand {
+    constructor(initialSelectionIds, newSelectionIds, setElements) {
+        this.initialSelectionIds = initialSelectionIds;
+        this.newSelectionIds = newSelectionIds;
+        this.setElements = setElements;
+    }
+    execute() {}
+    redo() {
+        this.setElements((prevElements) => {
+            const newArray = prevElements.map((el, index) => ({
+                ...el,
+                selected: this.newSelectionIds[index],
+            }));
+            return newArray;
+        });
+    }
+    undo() {
+        this.setElements((prevElements) => {
+            const newArray = prevElements.map((el, index) => ({
+                ...el,
+                selected: this.initialSelectionIds[index],
+            }));
+            return newArray;
+        });
+    }
+}
+
 class AddCommand {
     constructor(newElement, setElements) {
         this.newElement = newElement;
@@ -211,4 +238,11 @@ const useHistory = () => {
 };
 
 export default useHistory;
-export { MoveCommand, ResizeCommand, AddCommand, DeleteCommand, RotateCommand };
+export {
+    MoveCommand,
+    ResizeCommand,
+    AddCommand,
+    DeleteCommand,
+    RotateCommand,
+    SelectCommand,
+};
