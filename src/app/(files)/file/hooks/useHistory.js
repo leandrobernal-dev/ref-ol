@@ -1,5 +1,42 @@
 import { useState } from "react";
 
+class MoveCommand {
+    constructor(elementIds, initialPositions, newPositions, setElements) {
+        this.elementIds = elementIds;
+        this.initialPositions = initialPositions;
+        this.newPositions = newPositions;
+        this.setElements = setElements;
+    }
+
+    execute() {
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.newPositions.forEach((newPosition) => {
+                const index = newArray.findIndex(
+                    (el) => el.id === newPosition.id
+                );
+                newArray[index].x = newPosition.x;
+                newArray[index].y = newPosition.y;
+            });
+            return newArray;
+        });
+    }
+
+    undo() {
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.initialPositions.forEach((initialPosition) => {
+                const index = newArray.findIndex(
+                    (el) => el.id === initialPosition.id
+                );
+                newArray[index].x = initialPosition.x;
+                newArray[index].y = initialPosition.y;
+            });
+            return newArray;
+        });
+    }
+}
+
 class AddCommand {
     constructor(newElement, setElements) {
         this.newElement = newElement;
