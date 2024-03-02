@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import ImageElement from "@/app/(files)/file/classes/ImageElement";
 import { usePressedKeys } from "@/app/(files)/file/hooks/customHooks";
 import { cursorType } from "@/app/(files)/file/utilities/CursorUtils";
@@ -23,6 +29,7 @@ import useHistory, {
     DeleteCommand,
     MoveCommand,
 } from "@/app/(files)/file/hooks/useHistory";
+import { FileDataContext } from "@/app/(files)/file/context/FileContext";
 
 export default function Canvas() {
     const canvasRef = useRef(null);
@@ -30,8 +37,9 @@ export default function Canvas() {
     const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
-    const [elements, setElements] = useState([]);
-    const { executeCommand, undo, redo } = useHistory(elements, setElements);
+    // const [elements, setElements] = useState([]);
+    const { elements, setElements } = useContext(FileDataContext);
+    const { executeCommand, undo, redo } = useHistory();
     const [initialValues, setInitialValues] = useState([]);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
@@ -41,9 +49,6 @@ export default function Canvas() {
     const [selectedTransformControl, setSelectedTransformControl] =
         useState(-1);
 
-    const [isLoaded, setIsLoaded] = useState(false);
-
-    const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
     const [prevAction, setPrevAction] = useState("none");
     const pressedKeys = usePressedKeys();
@@ -63,12 +68,6 @@ export default function Canvas() {
         }
 
         function handleMouseDown(event) {
-            const mouseCoords = getMouseCoordinates(
-                event,
-                canvasRef.current,
-                panOffset,
-                scale
-            );
             setInitialValues(elements);
             MouseDownHandler(
                 event,
@@ -84,8 +83,7 @@ export default function Canvas() {
                 selectedElementIndexes,
                 setDragStart,
                 pressedKeys,
-                createElement,
-                setInitialValues
+                createElement
             );
         }
 
