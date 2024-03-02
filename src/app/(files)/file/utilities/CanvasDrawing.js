@@ -57,8 +57,40 @@ export function updateCanvas(
     ctx.translate(panOffset.x, panOffset.y);
     ctx.scale(scale, scale);
 
-    // Draw elements
-    elements.forEach((element, index) => {
+    const nonSelectedElements = elements.filter(
+        (element, index) => !element.selected
+    );
+    const selectedElements = elements.filter(
+        (element, index) => element.selected
+    );
+    // Draw non seleceted elements first
+    nonSelectedElements.forEach((element, index) => {
+        let { x, y, width, height, image, rotationAngle } = element;
+
+        const cx = (x * 2 + width) / 2;
+        const cy = (y * 2 + height) / 2;
+
+        // Rotate around center
+        ctx.translate(cx, cy);
+        ctx.rotate(rotationAngle);
+        ctx.translate(-cx, -cy);
+
+        // Draw image
+        ctx.drawImage(
+            image,
+            x, // - image.naturalWidth / 2,
+            y, // - image.naturalHeight / 2,
+            width,
+            height
+        );
+
+        // Reset transformations
+        ctx.translate(cx, cy);
+        ctx.rotate(-rotationAngle);
+        ctx.translate(-cx, -cy);
+    });
+    // Draw selected elements last
+    selectedElements.forEach((element, index) => {
         let { x, y, width, height, image, rotationAngle } = element;
 
         const cx = (x * 2 + width) / 2;
