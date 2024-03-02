@@ -126,17 +126,6 @@ export function MouseDownHandler(
                     )
                     .filter((element) => element !== null);
 
-                // Move selected elements to the end of the array
-                if (selectedEls.length < 2) {
-                    selectedEls.forEach((element) => {
-                        const moveElement = newElements.splice(
-                            element.index,
-                            1
-                        )[0];
-                        newElements.push(moveElement);
-                    });
-                }
-
                 return newElements;
             });
             if (multiDrag || clickedElements.length > 0) {
