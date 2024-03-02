@@ -30,6 +30,7 @@ import useHistory, {
     MoveCommand,
     ResizeCommand,
     RotateCommand,
+    SelectCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 import { FileDataContext } from "@/app/(files)/file/context/FileContext";
 
@@ -296,6 +297,8 @@ export default function Canvas() {
                     setElements
                 );
                 executeCommand(moveCommand);
+            } else {
+                addSelectCommand();
             }
         }
         if (prevAction === "rotating") {
@@ -353,6 +356,33 @@ export default function Canvas() {
                     setElements
                 );
                 executeCommand(resizeCommand);
+            }
+        }
+        if (prevAction === "dragselect") {
+            addSelectCommand();
+        }
+
+        function addSelectCommand() {
+            // if no change in position, add SelectCommand to history
+            const initialSelections = initialValues.map((element) => ({
+                id: element.id,
+                selected: element.selected,
+            }));
+            const newSelections = elements.map((element) => ({
+                id: element.id,
+                selected: element.selected,
+            }));
+            // Check if there are changes in selection
+            if (
+                String(newSelections.map((el) => el.selected)) !==
+                String(initialSelections.map((el) => el.selected))
+            ) {
+                const selectCommand = new SelectCommand(
+                    initialSelections.map((element) => element.selected),
+                    newSelections.map((el) => el.selected),
+                    setElements
+                );
+                executeCommand(selectCommand);
             }
         }
     }, [action]);
