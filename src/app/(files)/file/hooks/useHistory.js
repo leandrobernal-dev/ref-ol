@@ -120,4 +120,4 @@ const useHistory = () => {
 };
 
 export default useHistory;
-export { AddCommand, DeleteCommand };
+export { MoveCommand, AddCommand, DeleteCommand };
