@@ -314,7 +314,7 @@ export default function Canvas() {
                 newTransforms[0].rotationAngle -
                 initialTransforms[0].rotationAngle;
             // Save to history if there was a change in rotation
-            if (deltaRotations[0].rotationAngle !== 0) {
+            if (deltaRotations.rotationAngle !== 0) {
                 const rotationCommand = new RotateCommand(
                     selectedElements.map((element) => element.id),
                     initialTransforms,
