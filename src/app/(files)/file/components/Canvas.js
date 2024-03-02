@@ -28,6 +28,7 @@ import useHistory, {
     AddCommand,
     DeleteCommand,
     MoveCommand,
+    RotateCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 import { FileDataContext } from "@/app/(files)/file/context/FileContext";
 
@@ -68,7 +69,7 @@ export default function Canvas() {
         }
 
         function handleMouseDown(event) {
-            setInitialValues(elements);
+            setInitialValues(JSON.parse(JSON.stringify(elements)) || []);
             MouseDownHandler(
                 event,
                 elements,
@@ -231,7 +232,6 @@ export default function Canvas() {
         transformControls,
         selectedTransformControl,
         initialTransform,
-        initialValues,
     ]);
 
     // setting drag start
@@ -267,14 +267,13 @@ export default function Canvas() {
     useEffect(() => {
         setPrevAction(action); // Store previous action
         if (action !== "none") return; // If no action is being performed, return
-
+        const selectedElements = elements
+            .map((element, index) =>
+                element.selected ? { id: element.id, index } : null
+            )
+            .filter((id) => id !== null);
         // If previous action was dragging, execute move command
         if (prevAction === "dragging") {
-            const selectedElements = elements
-                .map((element, index) =>
-                    element.selected ? { id: element.id, index } : null
-                )
-                .filter((id) => id !== null);
             const initialPositions = selectedElements.map((element) => ({
                 id: element.id,
                 x: initialValues[element.index].x,
@@ -287,8 +286,8 @@ export default function Canvas() {
             }));
             const deltaX = newPositions[0].x - initialPositions[0].x;
             const deltaY = newPositions[0].y - initialPositions[0].y;
+            // Save to history if there was a change in position
             if (deltaX !== 0 && deltaY !== 0) {
-                console.log(elements.map((el) => el.id));
                 const moveCommand = new MoveCommand(
                     selectedElements.map((element) => element.id),
                     initialPositions,
@@ -296,6 +295,33 @@ export default function Canvas() {
                     setElements
                 );
                 executeCommand(moveCommand);
+            }
+        }
+        if (prevAction === "rotating") {
+            const initialTransforms = selectedElements.map((element) => ({
+                id: element.id,
+                x: initialValues[element.index].x,
+                y: initialValues[element.index].y,
+                rotationAngle: initialValues[element.index].rotationAngle,
+            }));
+            const newTransforms = selectedElements.map((element) => ({
+                id: element.id,
+                rotationAngle: elements[element.index].rotationAngle,
+                x: elements[element.index].x,
+                y: elements[element.index].y,
+            }));
+            const deltaRotations =
+                newTransforms[0].rotationAngle -
+                initialTransforms[0].rotationAngle;
+            // Save to history if there was a change in rotation
+            if (deltaRotations[0].rotationAngle !== 0) {
+                const rotationCommand = new RotateCommand(
+                    selectedElements.map((element) => element.id),
+                    initialTransforms,
+                    newTransforms,
+                    setElements
+                );
+                executeCommand(rotationCommand);
             }
         }
     }, [action]);

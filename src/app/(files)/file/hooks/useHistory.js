@@ -37,6 +37,43 @@ class MoveCommand {
     }
 }
 
+class RotateCommand {
+    constructor(elementIds, initialTransforms, newTransforms, setElements) {
+        this.elementIds = elementIds;
+        this.initialTransforms = initialTransforms;
+        this.newTransforms = newTransforms;
+        this.setElements = setElements;
+    }
+    execute() {
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.newTransforms.forEach((newTransform) => {
+                const index = newArray.findIndex(
+                    (el) => el.id === newTransform.id
+                );
+                newArray[index].x = newTransform.x;
+                newArray[index].y = newTransform.y;
+                newArray[index].rotationAngle = newTransform.rotationAngle;
+            });
+            return newArray;
+        });
+    }
+    undo() {
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.initialTransforms.forEach((initialTransform) => {
+                const index = newArray.findIndex(
+                    (el) => el.id === initialTransform.id
+                );
+                newArray[index].rotationAngle = initialTransform.rotationAngle;
+                newArray[index].x = initialTransform.x;
+                newArray[index].y = initialTransform.y;
+            });
+            return newArray;
+        });
+    }
+}
+
 class AddCommand {
     constructor(newElement, setElements) {
         this.newElement = newElement;
@@ -120,4 +157,4 @@ const useHistory = () => {
 };
 
 export default useHistory;
-export { MoveCommand, AddCommand, DeleteCommand };
+export { MoveCommand, AddCommand, DeleteCommand, RotateCommand };
