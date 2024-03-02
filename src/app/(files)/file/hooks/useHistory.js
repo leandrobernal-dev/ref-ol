@@ -74,6 +74,47 @@ class RotateCommand {
     }
 }
 
+class ResizeCommand {
+    constructor(elementIds, initialTransforms, newTransforms, setElements) {
+        this.elementIds = elementIds;
+        this.initialTransforms = initialTransforms;
+        this.newTransforms = newTransforms;
+        this.setElements = setElements;
+    }
+
+    execute() {
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.newTransforms.forEach((newTransform) => {
+                const index = newArray.findIndex(
+                    (el) => el.id === newTransform.id
+                );
+                newArray[index].x = newTransform.x;
+                newArray[index].y = newTransform.y;
+                newArray[index].width = newTransform.width;
+                newArray[index].height = newTransform.height;
+            });
+            return newArray;
+        });
+    }
+
+    undo() {
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.initialTransforms.forEach((initialTransform) => {
+                const index = newArray.findIndex(
+                    (el) => el.id === initialTransform.id
+                );
+                newArray[index].x = initialTransform.x;
+                newArray[index].y = initialTransform.y;
+                newArray[index].width = initialTransform.width;
+                newArray[index].height = initialTransform.height;
+            });
+            return newArray;
+        });
+    }
+}
+
 class AddCommand {
     constructor(newElement, setElements) {
         this.newElement = newElement;
@@ -157,4 +198,4 @@ const useHistory = () => {
 };
 
 export default useHistory;
-export { MoveCommand, AddCommand, DeleteCommand, RotateCommand };
+export { MoveCommand, ResizeCommand, AddCommand, DeleteCommand, RotateCommand };

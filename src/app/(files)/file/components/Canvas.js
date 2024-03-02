@@ -28,6 +28,7 @@ import useHistory, {
     AddCommand,
     DeleteCommand,
     MoveCommand,
+    ResizeCommand,
     RotateCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 import { FileDataContext } from "@/app/(files)/file/context/FileContext";
@@ -322,6 +323,36 @@ export default function Canvas() {
                     setElements
                 );
                 executeCommand(rotationCommand);
+            }
+        }
+        if (prevAction === "resizing") {
+            const initialTransforms = selectedElements.map((element) => ({
+                id: element.id,
+                x: initialValues[element.index].x,
+                y: initialValues[element.index].y,
+                width: initialValues[element.index].width,
+                height: initialValues[element.index].height,
+            }));
+            const newTransforms = selectedElements.map((element) => ({
+                id: element.id,
+                x: elements[element.index].x,
+                y: elements[element.index].y,
+                width: elements[element.index].width,
+                height: elements[element.index].height,
+            }));
+            const deltaWidth =
+                newTransforms[0].width - initialTransforms[0].width;
+            const deltaHeight =
+                newTransforms[0].height - initialTransforms[0].height;
+            // Save to history if there was a change in size
+            if (deltaWidth !== 0 || deltaHeight !== 0) {
+                const resizeCommand = new ResizeCommand(
+                    selectedElements.map((element) => element.id),
+                    initialTransforms,
+                    newTransforms,
+                    setElements
+                );
+                executeCommand(resizeCommand);
             }
         }
     }, [action]);
