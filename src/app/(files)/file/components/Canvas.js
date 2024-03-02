@@ -21,6 +21,7 @@ import { updateCanvas } from "@/app/(files)/file/utilities/CanvasDrawing";
 import useHistory, {
     AddCommand,
     DeleteCommand,
+    MoveCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 
 export default function Canvas() {
@@ -44,7 +45,10 @@ export default function Canvas() {
 
     const [undo, setUndo] = useState([]);
     const [action, setAction] = useState("none");
+    const [prevAction, setPrevAction] = useState("none");
     const pressedKeys = usePressedKeys();
+
+    //
     useEffect(() => {
         const canvas = canvasRef.current;
         const boundingRect = canvas.getBoundingClientRect();
@@ -261,6 +265,42 @@ export default function Canvas() {
             }));
         }
     }, [elements]);
+    // Setting undo/redo
+    useEffect(() => {
+        setPrevAction(action); // Store previous action
+        if (action !== "none") return; // If no action is being performed, return
+
+        // If previous action was dragging, execute move command
+        if (prevAction === "dragging") {
+            const selectedElements = elements
+                .map((element, index) =>
+                    element.selected ? { id: element.id, index } : null
+                )
+                .filter((id) => id !== null);
+            const initialPositions = selectedElements.map((element) => ({
+                id: element.id,
+                x: initialValues[element.index].x,
+                y: initialValues[element.index].y,
+            }));
+            const newPositions = selectedElements.map((element) => ({
+                id: element.id,
+                x: elements[element.index].x,
+                y: elements[element.index].y,
+            }));
+            const deltaX = newPositions[0].x - initialPositions[0].x;
+            const deltaY = newPositions[0].y - initialPositions[0].y;
+            if (deltaX !== 0 && deltaY !== 0) {
+                console.log(elements.map((el) => el.id));
+                const moveCommand = new MoveCommand(
+                    selectedElements.map((element) => element.id),
+                    initialPositions,
+                    newPositions,
+                    setElements
+                );
+                executeCommand(moveCommand);
+            }
+        }
+    }, [action]);
 
     // Apply transformations to canvas context
     useLayoutEffect(() => {
