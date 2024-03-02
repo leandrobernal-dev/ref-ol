@@ -1,5 +1,10 @@
 import { useState } from "react";
 
+/**
+ * Some execute commands are empty because the operations are done outside the command
+ * Exceptions are the AddCommand and DeleteCommand
+ */
+
 class MoveCommand {
     constructor(elementIds, initialPositions, newPositions, setElements) {
         this.elementIds = elementIds;
@@ -7,8 +12,8 @@ class MoveCommand {
         this.newPositions = newPositions;
         this.setElements = setElements;
     }
-
-    execute() {
+    execute() {}
+    redo() {
         this.setElements((prevElements) => {
             const newArray = [...prevElements];
             this.newPositions.forEach((newPosition) => {
@@ -44,7 +49,8 @@ class RotateCommand {
         this.newTransforms = newTransforms;
         this.setElements = setElements;
     }
-    execute() {
+    execute() {}
+    redo() {
         this.setElements((prevElements) => {
             const newArray = [...prevElements];
             this.newTransforms.forEach((newTransform) => {
@@ -82,7 +88,8 @@ class ResizeCommand {
         this.setElements = setElements;
     }
 
-    execute() {
+    execute() {}
+    redo() {
         this.setElements((prevElements) => {
             const newArray = [...prevElements];
             this.newTransforms.forEach((newTransform) => {
@@ -121,6 +128,9 @@ class AddCommand {
         this.setElements = setElements;
     }
 
+    redo() {
+        this.execute();
+    }
     execute() {
         this.setElements((prevElements) => [...prevElements, this.newElement]);
     }
@@ -140,6 +150,9 @@ class DeleteCommand {
         this.deletedElements = [];
     }
 
+    redo() {
+        this.execute();
+    }
     execute() {
         this.deletedElements = [];
         this.elementIds.forEach((id) => {
@@ -189,7 +202,7 @@ const useHistory = () => {
         if (currentIndex < history.length - 1) {
             const nextCommandIndex = currentIndex + 1;
             const nextCommand = history[nextCommandIndex];
-            nextCommand.execute();
+            nextCommand.redo();
             setCurrentIndex(nextCommandIndex);
         }
     };
