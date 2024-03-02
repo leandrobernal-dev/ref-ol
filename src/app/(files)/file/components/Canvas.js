@@ -378,8 +378,12 @@ export default function Canvas() {
                 String(initialSelections.map((el) => el.selected))
             ) {
                 const selectCommand = new SelectCommand(
-                    initialSelections.map((element) => element.selected),
-                    newSelections.map((el) => el.selected),
+                    initialSelections
+                        .filter((element) => element.selected)
+                        .map((element) => element.id),
+                    newSelections
+                        .filter((element) => element.selected)
+                        .map((el) => el.id),
                     setElements
                 );
                 executeCommand(selectCommand);

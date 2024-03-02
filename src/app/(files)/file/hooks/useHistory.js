@@ -131,19 +131,29 @@ class SelectCommand {
     execute() {}
     redo() {
         this.setElements((prevElements) => {
-            const newArray = prevElements.map((el, index) => ({
-                ...el,
-                selected: this.newSelectionIds[index],
-            }));
+            const newArray = [...prevElements];
+            this.newSelectionIds.forEach((id) => {
+                const index = newArray.findIndex((el) => el.id === id);
+                newArray[index].selected = true;
+            });
+            this.initialSelectionIds.forEach((id) => {
+                const index = newArray.findIndex((el) => el.id === id);
+                newArray[index].selected = false;
+            });
             return newArray;
         });
     }
     undo() {
         this.setElements((prevElements) => {
-            const newArray = prevElements.map((el, index) => ({
-                ...el,
-                selected: this.initialSelectionIds[index],
-            }));
+            const newArray = [...prevElements];
+            this.initialSelectionIds.forEach((id) => {
+                const index = newArray.findIndex((el) => el.id === id);
+                newArray[index].selected = true;
+            });
+            this.newSelectionIds.forEach((id) => {
+                const index = newArray.findIndex((el) => el.id === id);
+                newArray[index].selected = false;
+            });
             return newArray;
         });
     }
