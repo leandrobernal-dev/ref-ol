@@ -15,8 +15,8 @@ export function DragHandler(
                 preCopy[index].y = mouseCoords.y + dragStart.y[index];
             });
         } else {
-            preCopy[preCopy.length - 1].x = mouseCoords.x + dragStart.x;
-            preCopy[preCopy.length - 1].y = mouseCoords.y + dragStart.y;
+            preCopy[selectedElementIndexes[0]].x = mouseCoords.x + dragStart.x;
+            preCopy[selectedElementIndexes[0]].y = mouseCoords.y + dragStart.y;
         }
         return preCopy;
     });
