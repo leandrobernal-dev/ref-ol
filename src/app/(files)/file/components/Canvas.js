@@ -36,7 +36,7 @@ import { FileDataContext } from "@/app/(files)/file/context/FileContext";
 
 export default function Canvas() {
     const canvasRef = useRef(null);
-    const [panOffset, setPanOffset] = useState({ x: 200, y: 200 });
+    const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
@@ -482,6 +482,11 @@ export default function Canvas() {
 
     // Rerender when window resizes, disable default page zoom
     useEffect(() => {
+        // Center canvas onload
+        setPanOffset({
+            x: canvasRef.current.width / 2,
+            y: canvasRef.current.height / 2,
+        });
         const handleResize = () => {
             setWindowSize({
                 width: window.innerWidth,
