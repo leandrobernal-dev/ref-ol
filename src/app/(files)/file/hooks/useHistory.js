@@ -170,7 +170,6 @@ class AddCommand {
     }
 
     execute() {
-        console.log(this.newElements);
         this.setElements((prevElements) => [
             ...prevElements,
             ...this.newElements,
@@ -179,7 +178,9 @@ class AddCommand {
 
     undo() {
         this.setElements((prevElements) => {
-            return prevElements.filter((el) => !this.newElements.includes(el));
+            return prevElements.filter(
+                (el) => !this.newElements.some((newEl) => newEl.id === el.id)
+            );
         });
     }
 }
