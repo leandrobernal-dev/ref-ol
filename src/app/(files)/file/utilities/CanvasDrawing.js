@@ -282,7 +282,7 @@ export function updateCanvas(
     }
 
     // Draw dragselect highlight rect
-    if (action === "dragselect") {
+    if (action === "dragselect" && elements.length > 0) {
         ctx.strokeStyle = "#50C4FF";
         ctx.lineWidth = 0.5 / scale;
 
