@@ -190,6 +190,30 @@ export function updateCanvas(
         ctx.translate(-cx, -cy);
     });
 
+    // Draw text "Drop your images here!" in the center of the canvas inside a dashed border
+    if (elements.length < 1) {
+        ctx.strokeStyle = "#50C4FF";
+        // Draw dashed rectangle
+        let rectWidth = 1500;
+        let rectHeight = 1000;
+        let rectX = -(rectWidth / 2);
+        let rectY = -(rectHeight / 2);
+
+        ctx.lineWidth = 1 / scale;
+        ctx.setLineDash([20, 3]);
+        ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+
+        let text = "Drop your images here!";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#50C4FF";
+        ctx.font = "70px Arial";
+
+        let centerX = rectX + rectWidth / 2;
+        let centerY = rectY + rectHeight / 2;
+        ctx.fillText(text, centerX, centerY);
+    }
+
     // Draw outline and transform for multiple selected elements
     if (multipleElementSelected) {
         const selectedEls = elements.filter((element, index) =>
@@ -304,16 +328,16 @@ export function updateCanvas(
     }
 
     // Draw grid
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 1 / scale;
-    ctx.beginPath();
-    ctx.moveTo(0, -5 / scale);
-    ctx.lineTo(0, 5 / scale);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-5 / scale, 0);
-    ctx.lineTo(5 / scale, 0);
-    ctx.stroke();
+    // ctx.strokeStyle = "red";
+    // ctx.lineWidth = 1 / scale;
+    // ctx.beginPath();
+    // ctx.moveTo(0, -5 / scale);
+    // ctx.lineTo(0, 5 / scale);
+    // ctx.stroke();
+    // ctx.beginPath();
+    // ctx.moveTo(-5 / scale, 0);
+    // ctx.lineTo(5 / scale, 0);
+    // ctx.stroke();
 
     ctx.restore();
 }
