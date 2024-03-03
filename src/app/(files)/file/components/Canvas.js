@@ -275,6 +275,7 @@ export default function Canvas() {
         transformControls,
         selectedTransformControl,
         initialTransform,
+        panOffset,
     ]);
 
     // setting drag start
