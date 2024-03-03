@@ -81,8 +81,7 @@ export function MouseDownHandler(
                                   if (
                                       clickedElements[
                                           clickedElements.length - 1
-                                      ] === element.id ||
-                                      element.selected
+                                      ] === element.id
                                   ) {
                                       isSelected = true;
                                   }
@@ -118,11 +117,6 @@ export function MouseDownHandler(
                           };
                       })
                     : [...pre];
-                const selectedEls = newElements
-                    .map((element, index) =>
-                        element.selected ? { element, index } : null
-                    )
-                    .filter((element) => element !== null);
 
                 return newElements;
             });
