@@ -33,6 +33,7 @@ import useHistory, {
     SelectCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 import { FileDataContext } from "@/app/(files)/file/context/FileContext";
+import KeyboardShortcuts from "@/app/(files)/file/utilities/Shortcuts";
 
 export default function Canvas() {
     const canvasRef = useRef(null);
@@ -444,33 +445,6 @@ export default function Canvas() {
         );
     }, [scale, panOffset, windowSize, elements, mouseCoords]);
 
-    // Shortcut handler
-    useEffect(() => {
-        if (pressedKeys.has("Control")) {
-            if (pressedKeys.has("z") || pressedKeys.has("Z")) {
-                undo();
-            }
-            if (pressedKeys.has("y") || pressedKeys.has("Y")) {
-                redo();
-            }
-        }
-        if (pressedKeys.has("Delete")) {
-            const indexToDelete = elements
-                .map((element) => {
-                    return element.selected ? element.id : null;
-                })
-                .filter((id) => id !== null);
-
-            if (indexToDelete.length === 0) return;
-            const deleteCommand = new DeleteCommand(
-                indexToDelete,
-                elements,
-                setElements
-            );
-            executeCommand(deleteCommand);
-        }
-    }, [pressedKeys]);
-
     function createElement(newElements) {
         const addCommand = new AddCommand(newElements, setElements);
         executeCommand(addCommand);
@@ -502,10 +476,19 @@ export default function Canvas() {
     }, []);
 
     return (
-        <canvas
-            ref={canvasRef}
-            id="canvas"
-            className={`fixed top-0 left-0 overflow-hidden ${cursor}`}
-        ></canvas>
+        <>
+            <canvas
+                ref={canvasRef}
+                id="canvas"
+                className={`fixed top-0 left-0 overflow-hidden ${cursor}`}
+            ></canvas>
+            <KeyboardShortcuts
+                elements={elements}
+                setElements={setElements}
+                executeCommand={executeCommand}
+                undo={undo}
+                redo={redo}
+            />
+        </>
     );
 }
