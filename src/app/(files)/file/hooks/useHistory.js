@@ -171,7 +171,7 @@ class AddCommand {
 
     execute() {
         this.setElements((prevElements) => [
-            ...prevElements,
+            ...prevElements.map((el) => ({ ...el, selected: false })),
             ...this.newElements,
         ]);
     }
