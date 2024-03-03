@@ -17,9 +17,7 @@ export function MouseDownHandler(
     setSelectedTransformControl,
     transformControls,
     selectedElementIndexes,
-    setDragStart,
-    pressedKeys,
-    createElement
+    pressedKeys
 ) {
     event.preventDefault();
 

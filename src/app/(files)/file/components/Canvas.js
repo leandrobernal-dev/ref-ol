@@ -84,9 +84,7 @@ export default function Canvas() {
                 setSelectedTransformControl,
                 transformControls,
                 selectedElementIndexes,
-                setDragStart,
-                pressedKeys,
-                createElement
+                pressedKeys
             );
         }
 
