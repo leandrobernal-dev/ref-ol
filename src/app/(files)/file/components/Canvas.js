@@ -56,7 +56,7 @@ export default function Canvas() {
     const [prevAction, setPrevAction] = useState("none");
     const pressedKeys = usePressedKeys();
 
-    //
+    // Main handler for mouse events
     useEffect(() => {
         const canvas = canvasRef.current;
         const boundingRect = canvas.getBoundingClientRect();
@@ -402,8 +402,9 @@ export default function Canvas() {
             setTransformControls,
             panOffset
         );
-    }, [scale, panOffset, windowSize, elements]);
+    }, [scale, panOffset, windowSize, elements, mouseCoords]);
 
+    // Shortcut handler
     useEffect(() => {
         if (pressedKeys.has("Control")) {
             if (pressedKeys.has("z") || pressedKeys.has("Z")) {
