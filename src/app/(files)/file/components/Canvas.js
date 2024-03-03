@@ -205,9 +205,6 @@ export default function Canvas() {
         function handleMouseUp(event) {
             setAction("none");
         }
-        function handleContextMenu(event) {
-            event.preventDefault();
-        }
         function handleDragOver(event) {
             event.preventDefault();
         }
@@ -260,7 +257,6 @@ export default function Canvas() {
         canvas.addEventListener("drop", handleDrop);
         canvas.addEventListener("wheel", handleWheel, { passive: false });
         canvas.addEventListener("mousemove", handleMouseMove);
-        canvas.addEventListener("contextmenu", handleContextMenu);
 
         // Clean up event listeners on component unmount
         return () => {
@@ -270,7 +266,6 @@ export default function Canvas() {
             canvas.removeEventListener("drop", handleDrop);
             canvas.removeEventListener("wheel", handleWheel);
             canvas.removeEventListener("mousemove", handleMouseMove);
-            canvas.removeEventListener("contextmenu", handleContextMenu);
         };
     }, [
         action,
