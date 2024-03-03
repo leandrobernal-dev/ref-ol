@@ -89,8 +89,7 @@ export function MouseDownHandler(
                                   if (
                                       clickedElements[
                                           clickedElements.length - 1
-                                      ] === element.id ||
-                                      element.selected
+                                      ] === element.id
                                   ) {
                                       isSelected = true;
                                   }
