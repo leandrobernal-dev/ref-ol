@@ -128,7 +128,9 @@ class SelectCommand {
         this.newSelectionIds = newSelectionIds;
         this.setElements = setElements;
     }
-    execute() {}
+    execute() {
+        this.redo();
+    }
     redo() {
         this.setElements((prevElements) => {
             const newArray = [...prevElements];
