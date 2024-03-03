@@ -208,10 +208,56 @@ export default function Canvas() {
         function handleContextMenu(event) {
             event.preventDefault();
         }
+        function handleDragOver(event) {
+            event.preventDefault();
+        }
+        function handleDrop(event) {
+            event.preventDefault();
+
+            const mouseCoords = getMouseCoordinates(
+                event,
+                canvasRef.current,
+                panOffset,
+                scale
+            );
+
+            const files = event.dataTransfer.files;
+            const newElements = []; // Array to store new elements
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file && file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const imageData = event.target.result;
+                        const image = new Image();
+                        image.src = imageData;
+                        image.onload = () => {
+                            const newElement = new ImageElement(
+                                imageData,
+                                mouseCoords.x - image.width / 2,
+                                mouseCoords.y - image.height / 2,
+                                true
+                            );
+                            newElement.create();
+                            newElements.push(newElement); // Add new element to the array
+                            if (newElements.length === files.length) {
+                                // If all files processed, create elements
+                                createElement(newElements);
+                            }
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    console.log("File dropped is not an image.");
+                }
+            }
+        }
 
         // Attach event listeners
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mouseup", handleMouseUp);
+        canvas.addEventListener("dragover", handleDragOver);
+        canvas.addEventListener("drop", handleDrop);
         canvas.addEventListener("wheel", handleWheel, { passive: false });
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("contextmenu", handleContextMenu);
@@ -220,6 +266,8 @@ export default function Canvas() {
         return () => {
             canvas.removeEventListener("mousedown", handleMouseDown);
             canvas.removeEventListener("mouseup", handleMouseUp);
+            canvas.removeEventListener("dragover", handleDragOver);
+            canvas.removeEventListener("drop", handleDrop);
             canvas.removeEventListener("wheel", handleWheel);
             canvas.removeEventListener("mousemove", handleMouseMove);
             canvas.removeEventListener("contextmenu", handleContextMenu);
@@ -431,47 +479,10 @@ export default function Canvas() {
         }
     }, [pressedKeys]);
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
-    function createElement(newElement) {
-        const elementsCopy = [...elements];
-        elementsCopy[elements.length] = newElement;
-        const addCommand = new AddCommand(newElement, setElements);
+    function createElement(newElements) {
+        const addCommand = new AddCommand(newElements, setElements);
         executeCommand(addCommand);
-        setElements(elementsCopy, true);
     }
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const mouseCoords = getMouseCoordinates(
-            e,
-            canvasRef.current,
-            panOffset,
-            scale
-        );
-
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith("image/")) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const imageData = event.target.result;
-                const image = new Image();
-                image.src = imageData;
-                image.onload = () => {
-                    const newElement = new ImageElement(
-                        imageData,
-                        mouseCoords.x - image.width / 2,
-                        mouseCoords.y - image.height / 2
-                    );
-                    newElement.create();
-                    createElement(newElement);
-                };
-            };
-            reader.readAsDataURL(file);
-        } else {
-            console.log("Please drop an image file.");
-        }
-    };
 
     // Rerender when window resizes, disable default page zoom
     useEffect(() => {
@@ -497,8 +508,6 @@ export default function Canvas() {
         <canvas
             ref={canvasRef}
             id="canvas"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
             className={`fixed top-0 left-0 overflow-hidden ${cursor}`}
         ></canvas>
     );
