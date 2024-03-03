@@ -291,7 +291,12 @@ export default function Canvas() {
             .filter((element) => element !== null);
         // Set DragStart
         if (action !== "dragging") return;
-        if (selectedEls.length > 1) {
+        if (selectedEls.length === 1) {
+            setDragStart(() => ({
+                x: elements[selectedEls[0].index].x - mouseCoords.x,
+                y: elements[selectedEls[0].index].y - mouseCoords.y,
+            }));
+        } else {
             setDragStart({
                 x: elements.map((element, index) =>
                     element.selected ? element.x - mouseCoords.x : null
@@ -300,15 +305,6 @@ export default function Canvas() {
                     element.selected ? element.y - mouseCoords.y : null
                 ),
             });
-        } else {
-            setDragStart(() => ({
-                x:
-                    elements[selectedEls[selectedEls.length - 1].index].x -
-                    mouseCoords.x,
-                y:
-                    elements[selectedEls[selectedEls.length - 1].index].y -
-                    mouseCoords.y,
-            }));
         }
     }, [elements]);
     // Setting undo/redo
