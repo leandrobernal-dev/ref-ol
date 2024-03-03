@@ -177,15 +177,4 @@ export function MouseDownHandler(
             setAction("resizing");
         }
     }
-
-    // SAMPLE ADD IMAGE ELEMENT
-    if (event.button === 2) {
-        const newElement = new ImageElement(
-            "https://i.pinimg.com/564x/90/e2/2e/90e22eb27604c0064e86ce5478b9fa8c.jpg",
-            mouseCoords.x,
-            mouseCoords.y
-        );
-        newElement.create();
-        createElement(newElement);
-    }
 }
