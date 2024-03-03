@@ -194,8 +194,8 @@ export function updateCanvas(
     if (elements.length < 1) {
         ctx.strokeStyle = "#50C4FF";
         // Draw dashed rectangle
-        let rectWidth = 1500;
-        let rectHeight = 1000;
+        let rectWidth = 1200;
+        let rectHeight = 800;
         let rectX = -(rectWidth / 2);
         let rectY = -(rectHeight / 2);
 
