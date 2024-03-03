@@ -160,22 +160,27 @@ class SelectCommand {
 }
 
 class AddCommand {
-    constructor(newElement, setElements) {
-        this.newElement = newElement;
+    constructor(newElements, setElements) {
+        this.newElements = newElements;
         this.setElements = setElements;
     }
 
     redo() {
         this.execute();
     }
+
     execute() {
-        this.setElements((prevElements) => [...prevElements, this.newElement]);
+        console.log(this.newElements);
+        this.setElements((prevElements) => [
+            ...prevElements,
+            ...this.newElements,
+        ]);
     }
 
     undo() {
-        this.setElements((prevElements) =>
-            prevElements.filter((el) => el.id !== this.newElement.id)
-        );
+        this.setElements((prevElements) => {
+            return prevElements.filter((el) => !this.newElements.includes(el));
+        });
     }
 }
 
