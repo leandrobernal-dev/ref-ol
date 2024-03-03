@@ -28,10 +28,11 @@ function KeyboardShortcuts({
 
             // Check for Ctrl + A (select all)
             if (ctrlKey && (key === "a" || key === "A")) {
+                // Check if all elements are already selected
+                if (elements.every((el) => el.selected)) return;
+
                 const newSelectCommand = new SelectCommand(
-                    elements
-                        .filter((element) => element.selected)
-                        .map((element) => element.id),
+                    [],
                     elements.map((el) => el.id),
                     setElements
                 );
