@@ -45,7 +45,11 @@ export function MouseDownHandler(
 
         // Get all the element's id that are hovered
         const clickedElements = elements
-            .map((element, index) => (element.isHovered ? element.id : null))
+            .map((element, index) =>
+                isOntopOfElement(mouseCoords.x, mouseCoords.y, element)
+                    ? element.id
+                    : null
+            )
             .filter((element) => element !== null);
 
         // If multiple elements are selected, check if mouse is over any of the selected elements for multi-element drag
