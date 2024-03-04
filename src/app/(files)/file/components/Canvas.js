@@ -427,6 +427,12 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
         }
     }, [action]);
 
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }, [windowSize]);
+
     // Apply transformations to canvas context
     useLayoutEffect(() => {
         const canvas = canvasRef.current;
@@ -441,7 +447,7 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
             panOffset,
             mouseCoords
         );
-    }, [scale, panOffset, windowSize, elements, mouseCoords]);
+    }, [scale, panOffset, elements, mouseCoords]);
 
     function createElement(newElements) {
         const addCommand = new AddCommand(newElements, setElements);
