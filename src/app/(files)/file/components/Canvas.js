@@ -235,13 +235,10 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                     };
                     reader.onloadend = () => {
                         // Update loader progress
-                        setAddLoaderProgress((prev) => {
-                            console.log(prev);
-                            return {
-                                ...prev,
-                                finished: prev.finished + 1,
-                            };
-                        });
+                        setAddLoaderProgress((prev) => ({
+                            ...prev,
+                            finished: prev.finished + 1,
+                        }));
                     };
                     reader.readAsDataURL(file);
                 } else {
