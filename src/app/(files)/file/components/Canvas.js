@@ -35,7 +35,7 @@ import useHistory, {
 import { FileDataContext } from "@/app/(files)/file/context/FileContext";
 import KeyboardShortcuts from "@/app/(files)/file/utilities/Shortcuts";
 
-export default function Canvas() {
+export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const canvasRef = useRef(null);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [scale, setScale] = useState(0.3);
@@ -204,6 +204,9 @@ export default function Canvas() {
             );
 
             const files = event.dataTransfer.files;
+            setAddLoaderOpen(true);
+            setAddLoaderProgress({ total: files.length, finished: 0 });
+
             const newElements = []; // Array to store new elements
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -222,11 +225,23 @@ export default function Canvas() {
                             );
                             newElement.create();
                             newElements.push(newElement); // Add new element to the array
+
+                            // Check if all files have been processed
                             if (newElements.length === files.length) {
-                                // If all files processed, create elements
                                 createElement(newElements);
+                                setAddLoaderOpen(false);
                             }
                         };
+                    };
+                    reader.onloadend = () => {
+                        // Update loader progress
+                        setAddLoaderProgress((prev) => {
+                            console.log(prev);
+                            return {
+                                ...prev,
+                                finished: prev.finished + 1,
+                            };
+                        });
                     };
                     reader.readAsDataURL(file);
                 } else {
