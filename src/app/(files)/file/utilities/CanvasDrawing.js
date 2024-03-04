@@ -1,5 +1,6 @@
 import {
     getRotatedBoundingBox,
+    isOntopOfElement,
     rotate,
 } from "@/app/(files)/file/utilities/CanvasUtils";
 
@@ -12,7 +13,8 @@ export function updateCanvas(
     multipleElementSelected,
     scale,
     setTransformControls,
-    panOffset
+    panOffset,
+    mouseCoords
 ) {
     /** @type {CanvasRenderingContext2D} */
     const ctx = canvas.getContext("2d");
@@ -293,7 +295,13 @@ export function updateCanvas(
     }
 
     // Draw outline for hovered elements
-    const hoveredElements = elements.filter((element) => element.isHovered);
+    const hoveredElements = elements
+        .map((element, index) =>
+            isOntopOfElement(mouseCoords.x, mouseCoords.y, element)
+                ? element
+                : null
+        )
+        .filter((element) => element !== null);
     if (hoveredElements.length > 0) {
         if (hoveredElements.length > 2) {
             hoveredElements.forEach((element, index) => {
