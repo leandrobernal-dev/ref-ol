@@ -74,6 +74,10 @@ export function MouseDownHandler(
                     y: mouseCoords.y,
                 }));
                 setAction("dragselect");
+                setElements((pre) =>
+                    pre.map((element) => ({ ...element, selected: false }))
+                );
+                return;
             }
             setElements((pre) => {
                 const newElements = !multiDrag
