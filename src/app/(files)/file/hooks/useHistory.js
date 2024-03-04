@@ -129,7 +129,14 @@ class SelectCommand {
         this.setElements = setElements;
     }
     execute() {
-        this.redo();
+        this.setElements((prevElements) => {
+            const newArray = [...prevElements];
+            this.newSelectionIds.forEach((id) => {
+                const index = newArray.findIndex((el) => el.id === id);
+                newArray[index].selected = true;
+            });
+            return newArray;
+        });
     }
     redo() {
         this.setElements((prevElements) => {
