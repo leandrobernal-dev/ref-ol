@@ -140,30 +140,14 @@ export default function Canvas() {
                 );
             }
 
-            let hovering = false;
-            elements.forEach((element, index) => {
-                const isHovered = isOntopOfElement(
-                    mouseCoords.x,
-                    mouseCoords.y,
-                    element
-                );
-
-                if (!isHovered) {
-                    setElements((pre) => {
-                        const preCopy = [...pre];
-                        preCopy[index].isHovered = false;
-                        return preCopy;
-                    });
-                    return; // if cursor is not over element
-                }
-
-                hovering = true;
-                setElements((pre) => {
-                    const preCopy = [...pre];
-                    preCopy[index].isHovered = true;
-                    return preCopy;
-                });
-            });
+            let hovering =
+                elements
+                    .map((element, index) =>
+                        isOntopOfElement(mouseCoords.x, mouseCoords.y, element)
+                            ? element.id
+                            : null
+                    )
+                    .filter((element) => element !== null).length > 0;
 
             // Check if mouse is hovering inside any resize control
             let selectedControl = getTransformControl(
@@ -277,6 +261,7 @@ export default function Canvas() {
         selectedTransformControl,
         initialTransform,
         panOffset,
+        mouseCoords,
     ]);
 
     // setting drag start
@@ -441,7 +426,8 @@ export default function Canvas() {
             multipleElementSelected(elements),
             scale,
             setTransformControls,
-            panOffset
+            panOffset,
+            mouseCoords
         );
     }, [scale, panOffset, windowSize, elements, mouseCoords]);
 

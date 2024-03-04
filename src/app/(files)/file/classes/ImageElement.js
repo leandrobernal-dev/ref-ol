@@ -5,7 +5,6 @@ class ImageElement {
         this.y = y;
         this.width = null;
         this.height = null;
-        this.isHovered = false;
         this.image = null;
         this.rotationAngle = 0;
         this.id = null;
