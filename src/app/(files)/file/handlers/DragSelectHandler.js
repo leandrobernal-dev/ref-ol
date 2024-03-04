@@ -19,13 +19,12 @@ export function DragSelectHandler(
         width: mouseCoords.x - initialTransform.x,
         height: mouseCoords.y - initialTransform.y,
     });
-    setElements((pre) => {
-        const newElements = pre.map((element, index) => {
-            return {
-                ...element,
-                selected: highlighted.includes(index),
-            };
+
+    highlighted.forEach((index) => {
+        setElements((pre) => {
+            const newElements = [...pre];
+            newElements[index].selected = true;
+            return newElements;
         });
-        return newElements;
     });
 }
