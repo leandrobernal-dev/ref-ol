@@ -2,10 +2,11 @@
 import { createContext, useState } from "react";
 
 export const FileDataContext = createContext();
-export default function FileDataContextProvider({ children }) {
-    const [elements, setElements] = useState([]);
+
+export default function FileDataContextProvider({ children, files: myFiles }) {
+    const [files, setFiles] = useState(myFiles);
     return (
-        <FileDataContext.Provider value={{ elements, setElements }}>
+        <FileDataContext.Provider value={{ files, setFiles }}>
             {children}
         </FileDataContext.Provider>
     );

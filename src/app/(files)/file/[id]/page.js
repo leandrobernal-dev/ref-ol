@@ -3,7 +3,6 @@
 import AddLoader from "@/app/(files)/file/components/AddLoader";
 import Canvas from "@/app/(files)/file/components/Canvas";
 import ContextMenuProvider from "@/app/(files)/file/components/ContextMenu";
-import FileDataContextProvider from "@/app/(files)/file/context/FileContext";
 import { useState } from "react";
 
 export default function FilePageLayout() {
@@ -13,7 +12,7 @@ export default function FilePageLayout() {
         total: 0,
     });
     return (
-        <FileDataContextProvider>
+        <>
             <ContextMenuProvider>
                 <Canvas
                     setAddLoaderOpen={setIsAdding}
@@ -21,6 +20,6 @@ export default function FilePageLayout() {
                 />
             </ContextMenuProvider>
             <AddLoader open={isAdding} progress={addingProgress} />
-        </FileDataContextProvider>
+        </>
     );
 }
