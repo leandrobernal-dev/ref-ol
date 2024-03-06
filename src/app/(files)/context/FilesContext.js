@@ -16,6 +16,8 @@ export default function FileDataContextProvider({
                     return [...state, file];
                 case "delete":
                     return state.filter(({ id }) => id !== file.id);
+                case "update":
+                    return state.map((f) => (f.id === file.id ? file : f));
                 default:
                     return state;
             }
