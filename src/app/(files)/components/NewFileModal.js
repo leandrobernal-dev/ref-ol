@@ -12,21 +12,22 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { FileDataContext } from "@/app/(files)/context/FilesContext";
 
 const initialState = {
     message: "",
 };
 export function NewFileModal() {
-    const { user, addOptimisticFile } = useContext(FileDataContext);
+    const { user, setOptimisticFile } = useContext(FileDataContext);
     const [formState, formAction] = useFormState(
         createFile.bind(null, user),
         initialState
     );
+    const [open, setOpen] = useState(false);
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="">Create new</Button>
             </DialogTrigger>
@@ -35,11 +36,11 @@ export function NewFileModal() {
                     action={async (formData) => {
                         const data = {
                             id: Math.random().toString(36).substring(7),
-                            user: user.id,
+                            user_id: user.id,
                             name: formData.get("file-name"),
                             description: formData.get("description"),
                         };
-                        addOptimisticFile(data);
+                        setOptimisticFile({ file: data, action: "add" });
                         await formAction(formData);
                     }}
                 >
@@ -73,7 +74,7 @@ export function NewFileModal() {
                     </div>
                     <DialogFooter>
                         <p>{formState?.message}</p>
-                        <NewFileSubmit />
+                        <NewFileSubmit setOpen={setOpen} />
                     </DialogFooter>
                 </form>
             </DialogContent>

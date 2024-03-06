@@ -8,9 +8,18 @@ export default function FileDataContextProvider({
     files: myFiles,
     user: currentUser,
 }) {
-    const [optimisticFiles, addOptimisticFile] = useOptimistic(
+    const [optimisticFiles, setOptimisticFile] = useOptimistic(
         myFiles,
-        (state, newFile) => [...state, newFile]
+        (state, { file, action }) => {
+            switch (action) {
+                case "add":
+                    return [...state, file];
+                case "delete":
+                    return state.filter(({ id }) => id !== file.id);
+                default:
+                    return state;
+            }
+        }
     );
     const [user, setUser] = useState(currentUser);
     return (
@@ -18,7 +27,7 @@ export default function FileDataContextProvider({
             value={{
                 user,
                 optimisticFiles,
-                addOptimisticFile,
+                setOptimisticFile,
             }}
         >
             {children}
