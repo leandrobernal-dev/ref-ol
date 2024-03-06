@@ -8,16 +8,17 @@ export async function createFile(user, prevState, formData) {
 
     try {
         const data = {
-            user: user.id,
+            user_id: user.id,
             name: formData.get("file-name"),
             description: formData.get("description"),
         };
-        revalidatePath("/files");
 
         const { data: files, error } = await supabase
             .from("Files")
             .insert([data])
             .select();
+        revalidatePath("/files");
+
         return files;
     } catch (error) {
         return { message: error.message };

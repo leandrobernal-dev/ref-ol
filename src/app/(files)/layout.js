@@ -29,7 +29,7 @@ export default async function RootLayout({ children }) {
     let { data: files } = await supabase
         .from("Files")
         .select("*")
-        .eq("user", user.id);
+        .eq("user_id", user.id);
 
     return (
         <html lang="en" suppressHydrationWarning>
