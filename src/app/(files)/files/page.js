@@ -2,7 +2,6 @@
 import { FileCard } from "@/app/(files)/components/FileCard";
 import { NewFileModal } from "@/app/(files)/components/NewFileModal";
 import { FileDataContext } from "@/app/(files)/context/FilesContext";
-import Link from "next/link";
 import { useContext } from "react";
 
 export default function FilesPage() {
@@ -23,11 +22,9 @@ export default function FilesPage() {
                     </p>
                 </section>
             ) : (
-                <section className="grid grid-cols-4 py-4 gap-2">
+                <section className="grid md:grid-cols-4 lg:grid-cols-5 grid-cols-2 sm:grid-cols-3 py-4 gap-2">
                     {files.map((file) => (
-                        <Link key={file.id} href={"/file/" + file.id}>
-                            <FileCard file={file} />
-                        </Link>
+                        <FileCard key={file.id} file={file} />
                     ))}
                 </section>
             )}
