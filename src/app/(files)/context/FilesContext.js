@@ -3,10 +3,18 @@ import { createContext, useState } from "react";
 
 export const FileDataContext = createContext();
 
-export default function FileDataContextProvider({ children, files: myFiles }) {
-    const [files, setFiles] = useState(myFiles);
+export default function FileDataContextProvider({
+    children,
+    files: myFiles,
+    user: currentUser,
+}) {
+    const [user, setUser] = useState(currentUser);
     return (
-        <FileDataContext.Provider value={{ files, setFiles }}>
+        <FileDataContext.Provider
+            value={{
+                user,
+            }}
+        >
             {children}
         </FileDataContext.Provider>
     );

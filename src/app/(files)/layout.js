@@ -26,7 +26,7 @@ export default async function RootLayout({ children }) {
         return redirect("/login");
     }
 
-    let { data: files, status } = await supabase
+    let { data: files } = await supabase
         .from("Files")
         .select("*")
         .eq("user", user.id);
@@ -40,7 +40,7 @@ export default async function RootLayout({ children }) {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <FileDataContextProvider files={files}>
+                    <FileDataContextProvider files={files} user={user}>
                         {children}
                     </FileDataContextProvider>
                 </ThemeProvider>
