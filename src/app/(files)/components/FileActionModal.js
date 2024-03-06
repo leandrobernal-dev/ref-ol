@@ -81,7 +81,7 @@ export function FileActionModal({ children, action, file }) {
                     </div>
                     <DialogFooter>
                         <p>{formState?.message}</p>
-                        <NewFileSubmit setOpen={setOpen} />
+                        <NewFileSubmit setOpen={setOpen} action={action} />
                     </DialogFooter>
                 </form>
             </DialogContent>
