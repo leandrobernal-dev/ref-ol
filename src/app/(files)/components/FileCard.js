@@ -14,7 +14,9 @@ export function FileCard({ file }) {
                         alt=""
                     />
                 </Link>
-                <DeleteFileModal file={file} />
+                <div className="absolute top-0 right-2 flex flex-col gap-1">
+                    <DeleteFileModal file={file} />
+                </div>
             </CardHeader>
             <CardContent className="p-4">
                 <CardTitle>{file.name}</CardTitle>
