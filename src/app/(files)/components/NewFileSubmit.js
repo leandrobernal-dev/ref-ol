@@ -5,7 +5,7 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 
-export function NewFileSubmit({ setOpen }) {
+export function NewFileSubmit({ setOpen, action }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { pending } = useFormStatus();
 
@@ -24,7 +24,11 @@ export function NewFileSubmit({ setOpen }) {
             {pending ? (
                 <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            {pending ? "Creating new File..." : "Save changes"}
+            {pending
+                ? action === "create"
+                    ? "Creating new File..."
+                    : "Updating file..."
+                : "Save changes"}
         </Button>
     );
 }

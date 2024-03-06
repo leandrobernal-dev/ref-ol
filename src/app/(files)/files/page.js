@@ -1,8 +1,9 @@
 "use client";
 import { FileCard } from "@/app/(files)/components/FileCard";
-import { NewFileModal } from "@/app/(files)/components/NewFileModal";
+import { FileActionModal } from "@/app/(files)/components/FileActionModal";
 import { FileDataContext } from "@/app/(files)/context/FilesContext";
 import { useContext } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function FilesPage() {
     const { optimisticFiles: files } = useContext(FileDataContext);
@@ -11,14 +12,20 @@ export default function FilesPage() {
             <section>
                 <span>My Files</span> |{" "}
                 <span>
-                    <NewFileModal />
+                    <FileActionModal
+                        action={"create"}
+                        children={<Button variant="">Create new</Button>}
+                    />
                 </span>
             </section>
             {files.length === 0 ? (
                 <section className="text-center flex flex-col gap-4 justify-center h-full">
                     <p>You don't have any files yet.</p>
                     <p>
-                        <NewFileModal />
+                        <FileActionModal
+                            action={"create"}
+                            children={<Button variant="">Create new</Button>}
+                        />
                     </p>
                 </section>
             ) : (

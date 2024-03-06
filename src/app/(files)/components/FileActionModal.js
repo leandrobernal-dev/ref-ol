@@ -14,23 +14,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useContext, useState } from "react";
 import { FileDataContext } from "@/app/(files)/context/FilesContext";
+import { updateFile } from "@/app/(files)/actions/update";
 
 const initialState = {
     message: "",
 };
-export function NewFileModal() {
+export function FileActionModal({ children, action, file }) {
     const { user, setOptimisticFile } = useContext(FileDataContext);
     const [formState, formAction] = useFormState(
-        createFile.bind(null, user),
+        action === "create"
+            ? createFile.bind(null, user)
+            : updateFile.bind(null, file.id),
         initialState
     );
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="">Create new</Button>
-            </DialogTrigger>
+            <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[450px]">
                 <form
                     action={async (formData) => {
@@ -40,12 +41,14 @@ export function NewFileModal() {
                             name: formData.get("file-name"),
                             description: formData.get("description"),
                         };
-                        setOptimisticFile({ file: data, action: "add" });
+                        setOptimisticFile({ file: data, action });
                         await formAction(formData);
                     }}
                 >
                     <DialogHeader>
-                        <DialogTitle>New File</DialogTitle>
+                        <DialogTitle>
+                            {action === "create" ? "New File" : "Edit File"}
+                        </DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
@@ -55,7 +58,9 @@ export function NewFileModal() {
                             <Input
                                 id="file-name"
                                 name="file-name"
-                                defaultValue=""
+                                defaultValue={
+                                    action === "create" ? "" : file.name
+                                }
                                 className="col-span-3"
                                 required
                             />
@@ -67,7 +72,9 @@ export function NewFileModal() {
                             <Input
                                 id="description"
                                 name="description"
-                                defaultValue=""
+                                defaultValue={
+                                    action === "create" ? "" : file.description
+                                }
                                 className="col-span-3"
                             />
                         </div>
