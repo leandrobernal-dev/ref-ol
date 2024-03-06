@@ -30,9 +30,15 @@ export default function FilesPage() {
                 </section>
             ) : (
                 <section className="grid md:grid-cols-4 lg:grid-cols-5 grid-cols-2 sm:grid-cols-3 py-4 gap-2">
-                    {files.map((file) => (
-                        <FileCard key={file.id} file={file} />
-                    ))}
+                    {files
+                        .sort((a, b) => {
+                            return (
+                                new Date(a.created_at) - new Date(b.created_at)
+                            );
+                        })
+                        .map((file) => (
+                            <FileCard key={file.id} file={file} />
+                        ))}
                 </section>
             )}
         </main>
