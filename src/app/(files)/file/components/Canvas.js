@@ -24,7 +24,7 @@ import { DragHandler } from "@/app/(files)/file/handlers/DragHandler";
 import { ResizeHandler } from "@/app/(files)/file/handlers/ResizeHandler";
 import { RotateHandler } from "@/app/(files)/file/handlers/RotateHandler";
 import { updateCanvas } from "@/app/(files)/file/utilities/CanvasDrawing";
-import useHistory, {
+import {
     AddCommand,
     MoveCommand,
     ResizeCommand,
@@ -33,6 +33,7 @@ import useHistory, {
 } from "@/app/(files)/file/hooks/useHistory";
 import KeyboardShortcuts from "@/app/(files)/file/utilities/Shortcuts";
 import { FileContext } from "@/app/(files)/file/context/FileContext";
+import { createImageFile } from "@/app/(files)/actions/create";
 
 export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const canvasRef = useRef(null);
@@ -40,7 +41,7 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
-    const { elements, setElements, executeCommand, undo, redo } =
+    const { elements, setElements, executeCommand, undo, redo, fileId } =
         useContext(FileContext);
     const [initialValues, setInitialValues] = useState([]);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -215,18 +216,27 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                         const image = new Image();
                         image.src = imageData;
                         image.onload = async () => {
-                            const newElement = new ImageElement(
-                                imageData,
-                                mouseCoords.x - image.width / 2,
-                                mouseCoords.y - image.height / 2,
-                                true
-                            );
+                            const newElement = new ImageElement({
+                                src: image.src,
+                                x: mouseCoords.x - image.width / 2,
+                                y: mouseCoords.y - image.height / 2,
+                                selected: true,
+                                key: file.name,
+                            });
                             await newElement.create();
                             newElements.push(newElement); // Add new element to the array
 
                             // Check if all files have been processed
                             if (newElements.length === files.length) {
-                                createElement(newElements);
+                                const newFiles = await createImageFile(
+                                    JSON.stringify({ newElements, fileId })
+                                );
+                                createElement(
+                                    newElements.map((el, index) => ({
+                                        ...el,
+                                        id: newFiles[index].id,
+                                    }))
+                                );
                                 setAddLoaderOpen(false);
                             }
                         };
