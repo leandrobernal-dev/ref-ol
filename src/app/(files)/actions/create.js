@@ -74,5 +74,6 @@ export async function createImageFile(data) {
             return data;
         })
     ).then((data) => data.flatMap((el) => el));
+    revalidatePath("/file", "layout");
     return savedElements;
 }

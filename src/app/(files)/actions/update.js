@@ -26,6 +26,8 @@ export async function updateFile(fileId, prevState, formData) {
 }
 
 export async function updateFileImage(file) {
+    revalidatePath("/file", "layout");
+
     const supabase = createClient();
     const s3Client = new S3Client({
         region: process.env.AWS_REGION,
