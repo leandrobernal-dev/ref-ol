@@ -10,6 +10,7 @@ export default function FileContextProvider({ children, images }) {
         total: images.length,
         finished: 0,
     });
+    const { executeCommand, undo, redo, history, currentIndex } = useHistory();
 
     useEffect(() => {
         async function createImageElements() {
@@ -44,6 +45,9 @@ export default function FileContextProvider({ children, images }) {
                 elements,
                 setElements,
                 progress,
+                executeCommand,
+                undo,
+                redo,
             }}
         >
             {children}

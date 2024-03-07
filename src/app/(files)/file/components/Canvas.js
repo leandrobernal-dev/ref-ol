@@ -40,9 +40,8 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
-    // const [elements, setElements] = useState([]);
-    const { elements, setElements } = useContext(FileContext);
-    const { executeCommand, undo, redo } = useHistory();
+    const { elements, setElements, executeCommand, undo, redo } =
+        useContext(FileContext);
     const [initialValues, setInitialValues] = useState([]);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
