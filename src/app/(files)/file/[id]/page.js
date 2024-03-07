@@ -1,6 +1,5 @@
 "use client";
 
-import { updateFileImage } from "@/app/(files)/actions/update";
 import AddLoader from "@/app/(files)/file/components/AddLoader";
 import Canvas from "@/app/(files)/file/components/Canvas";
 import ContextMenuProvider from "@/app/(files)/file/components/ContextMenu";
@@ -13,34 +12,13 @@ import { useContext, useState } from "react";
 
 export default function FilePageLayout() {
     const [isAdding, setIsAdding] = useState(false);
-    const [isSaving, setIssaving] = useState(false);
     const [addingProgress, setAddingProgress] = useState({
         finished: 0,
         total: 0,
     });
-    const { progress, updatedElements, elements, setUpdatedelements } =
+    const { progress, updatedElements, isSaving, handleSave } =
         useContext(FileContext);
 
-    async function handleSave() {
-        setIssaving(true);
-        const elementsToUpdate = elements
-            .filter((el) => updatedElements.includes(el.id))
-            .map((el) => {
-                return {
-                    id: el.id,
-                    transform: {
-                        x: el.x,
-                        y: el.y,
-                        width: el.width,
-                        height: el.height,
-                        rotationAngle: el.rotationAngle,
-                    },
-                };
-            });
-        await updateFileImage(JSON.stringify(elementsToUpdate));
-        setIssaving(false);
-        setUpdatedelements([]);
-    }
     return (
         <>
             {progress.finished === progress.total ? (

@@ -1,4 +1,5 @@
 "use client";
+import { updateFileImage } from "@/app/(files)/actions/update";
 import ImageElement from "@/app/(files)/file/classes/ImageElement";
 import useHistory, {
     AddCommand,
@@ -10,6 +11,7 @@ export const FileContext = createContext();
 
 export default function FileContextProvider({ children, images, fileId }) {
     const [updatedElements, setUpdatedelements] = useState([]);
+    const [isSaving, setIssaving] = useState(false);
     const [elements, setElements] = useState([]);
     const [progress, setProgress] = useState({
         total: images.length,
@@ -65,6 +67,27 @@ export default function FileContextProvider({ children, images, fileId }) {
         );
     }, []);
 
+    async function handleSave() {
+        setIssaving(true);
+        const elementsToUpdate = elements
+            .filter((el) => updatedElements.includes(el.id))
+            .map((el) => {
+                return {
+                    id: el.id,
+                    transform: {
+                        x: el.x,
+                        y: el.y,
+                        width: el.width,
+                        height: el.height,
+                        rotationAngle: el.rotationAngle,
+                    },
+                };
+            });
+        await updateFileImage(JSON.stringify(elementsToUpdate));
+        setIssaving(false);
+        setUpdatedelements([]);
+    }
+
     return (
         <FileContext.Provider
             value={{
@@ -77,6 +100,8 @@ export default function FileContextProvider({ children, images, fileId }) {
                 updatedElements,
                 setUpdatedelements,
                 fileId,
+                handleSave,
+                isSaving,
             }}
         >
             {children}
