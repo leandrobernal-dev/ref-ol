@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import ImageElement from "@/app/(files)/file/classes/ImageElement";
 import { usePressedKeys } from "@/app/(files)/file/hooks/customHooks";
 import { cursorType } from "@/app/(files)/file/utilities/CursorUtils";
@@ -26,6 +32,7 @@ import useHistory, {
     SelectCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 import KeyboardShortcuts from "@/app/(files)/file/utilities/Shortcuts";
+import { FileContext } from "@/app/(files)/file/context/FileContext";
 
 export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const canvasRef = useRef(null);
@@ -33,7 +40,8 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const [scale, setScale] = useState(0.3);
     const [windowSize, setWindowSize] = useState(null);
 
-    const [elements, setElements] = useState([]);
+    // const [elements, setElements] = useState([]);
+    const { elements, setElements } = useContext(FileContext);
     const { executeCommand, undo, redo } = useHistory();
     const [initialValues, setInitialValues] = useState([]);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
