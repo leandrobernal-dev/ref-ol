@@ -1,6 +1,9 @@
 "use client";
 import ImageElement from "@/app/(files)/file/classes/ImageElement";
-import useHistory, { SelectCommand } from "@/app/(files)/file/hooks/useHistory";
+import useHistory, {
+    AddCommand,
+    SelectCommand,
+} from "@/app/(files)/file/hooks/useHistory";
 import { createContext, useEffect, useState } from "react";
 
 export const FileContext = createContext();
@@ -16,7 +19,9 @@ export default function FileContextProvider({ children, images, fileId }) {
 
     useEffect(() => {
         const historyWithoutSelect = history.filter(
-            (command) => !(command instanceof SelectCommand)
+            (command) =>
+                !(command instanceof SelectCommand) ||
+                !(command instanceof AddCommand)
         );
 
         if (historyWithoutSelect.length > 0) {
