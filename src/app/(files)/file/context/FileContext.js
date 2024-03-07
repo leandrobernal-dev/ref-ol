@@ -5,7 +5,7 @@ import { createContext, useEffect, useState } from "react";
 
 export const FileContext = createContext();
 
-export default function FileContextProvider({ children, images }) {
+export default function FileContextProvider({ children, images, fileId }) {
     const [updatedElements, setUpdatedelements] = useState([]);
     const [elements, setElements] = useState([]);
     const [progress, setProgress] = useState({
@@ -70,6 +70,7 @@ export default function FileContextProvider({ children, images }) {
                 redo,
                 updatedElements,
                 setUpdatedelements,
+                fileId,
             }}
         >
             {children}
