@@ -22,7 +22,7 @@ export default function FileContextProvider({ children, images, fileId }) {
     useEffect(() => {
         const historyWithoutSelect = history.filter(
             (command) =>
-                !(command instanceof SelectCommand) ||
+                !(command instanceof SelectCommand) &&
                 !(command instanceof AddCommand)
         );
 
