@@ -207,14 +207,14 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                         const imageData = event.target.result;
                         const image = new Image();
                         image.src = imageData;
-                        image.onload = () => {
+                        image.onload = async () => {
                             const newElement = new ImageElement(
                                 imageData,
                                 mouseCoords.x - image.width / 2,
                                 mouseCoords.y - image.height / 2,
                                 true
                             );
-                            newElement.create();
+                            await newElement.create();
                             newElements.push(newElement); // Add new element to the array
 
                             // Check if all files have been processed
