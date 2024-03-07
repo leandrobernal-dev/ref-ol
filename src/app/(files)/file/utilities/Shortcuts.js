@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import hotkeys from "hotkeys-js";
 import {
     DeleteCommand,
     SelectCommand,
 } from "@/app/(files)/file/hooks/useHistory";
+import { FileContext } from "@/app/(files)/file/context/FileContext";
 
 function KeyboardShortcuts({
     elements,
@@ -12,6 +13,7 @@ function KeyboardShortcuts({
     undo,
     redo,
 }) {
+    const { handleSave } = useContext(FileContext);
     useEffect(() => {
         const handleKeyPress = (event) => {
             const { key, ctrlKey } = event;
@@ -24,6 +26,11 @@ function KeyboardShortcuts({
             // Check for Ctrl + Y (redo)
             if (ctrlKey && (key === "y" || key === "Y")) {
                 redo();
+            }
+
+            if (ctrlKey && (key === "s" || key === "S")) {
+                event.preventDefault();
+                handleSave();
             }
 
             // Check for Ctrl + A (select all)
@@ -67,10 +74,13 @@ function KeyboardShortcuts({
             }
         };
 
-        hotkeys("ctrl+z, ctrl+y, ctrl+a, delete, escape", handleKeyPress); // Register hotkeys
+        hotkeys(
+            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s",
+            handleKeyPress
+        ); // Register hotkeys
 
         return () => {
-            hotkeys.unbind("ctrl+z, ctrl+y, ctrl+a, delete, escape"); // Unbind hotkeys on component unmount
+            hotkeys.unbind("ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s"); // Unbind hotkeys on component unmount
         };
     }, [elements, executeCommand, setElements, undo, redo]);
 
