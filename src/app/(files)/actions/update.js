@@ -46,7 +46,6 @@ export async function updateFileImage(file) {
                     .eq("id", id)
                     .single();
                 const key = data.key;
-                console.log(key);
                 const command = new DeleteObjectCommand({
                     Bucket: process.env.AWS_BUCKET_NAME,
                     Key: key,
