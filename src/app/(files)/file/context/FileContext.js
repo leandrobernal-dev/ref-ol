@@ -68,6 +68,7 @@ export default function FileContextProvider({ children, images, fileId }) {
     }, []);
 
     async function handleSave() {
+        if (updatedElements.length === 0) return;
         setIssaving(true);
         const elementsToUpdate = elements
             .filter((el) => updatedElements.includes(el.id))
