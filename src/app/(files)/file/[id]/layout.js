@@ -54,6 +54,8 @@ export default async function FileLayout({ children, params }) {
     );
 
     return (
-        <FileContextProvider images={images}>{children}</FileContextProvider>
+        <FileContextProvider images={images} fileId={params.id}>
+            {children}
+        </FileContextProvider>
     );
 }
