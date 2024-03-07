@@ -33,16 +33,17 @@ export default function FileContextProvider({ children, images, fileId }) {
         async function createImageElements() {
             const imageElements = [];
             for (const imageData of images) {
-                const imageElement = new ImageElement(
-                    imageData.url,
-                    imageData.transform.x,
-                    imageData.transform.y,
-                    false,
-                    imageData.id,
-                    imageData.transform.width,
-                    imageData.transform.height,
-                    imageData.transform.rotationAngle
-                );
+                const imageElement = new ImageElement({
+                    src: imageData.url,
+                    x: imageData.transform.x,
+                    y: imageData.transform.y,
+                    id: imageData.id,
+                    width: imageData.transform.width,
+                    height: imageData.transform.height,
+                    rotationAngle: imageData.transform.rotationAngle,
+                    selected: false,
+                    key: imageData.key,
+                });
                 await imageElement.create();
                 imageElements.push(imageElement);
                 setProgress((prev) => {
