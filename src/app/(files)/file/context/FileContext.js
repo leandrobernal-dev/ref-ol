@@ -3,6 +3,7 @@ import { updateFileImage } from "@/app/(files)/actions/update";
 import ImageElement from "@/app/(files)/file/classes/ImageElement";
 import useHistory, {
     AddCommand,
+    DeleteCommand,
     SelectCommand,
 } from "@/app/(files)/file/hooks/useHistory";
 import { createContext, useEffect, useState } from "react";
@@ -29,11 +30,34 @@ export default function FileContextProvider({ children, images, fileId }) {
                     !(command instanceof AddCommand)
             );
 
+        // Save updated element ids and actions
         if (historyWithoutSelect.length > 0) {
-            const changedElementsIds = historyWithoutSelect
-                .flatMap((command) => command.elementIds)
-                .filter((value, index, self) => self.indexOf(value) === index);
-            setUpdatedelements(changedElementsIds);
+            const updatedElements = historyWithoutSelect.reduce(
+                (acc, command) => {
+                    command.elementIds.forEach((id) => {
+                        const existingIndex = acc.findIndex(
+                            (item) => item.id === id
+                        );
+                        if (command instanceof DeleteCommand) {
+                            if (existingIndex !== -1) {
+                                // Image is already deleted, remove other update actions
+                                acc = acc.filter((item) => item.id !== id);
+                            }
+                            acc.push({
+                                id,
+                                action: "delete",
+                            });
+                        } else {
+                            if (existingIndex === -1) {
+                                acc.push({ id, action: "update" });
+                            }
+                        }
+                    });
+                    return acc;
+                },
+                []
+            );
+            setUpdatedelements(updatedElements);
         } else {
             setUpdatedelements([]);
         }
@@ -73,19 +97,34 @@ export default function FileContextProvider({ children, images, fileId }) {
     async function handleSave() {
         if (updatedElements.length === 0) return;
         setIssaving(true);
-        const elementsToUpdate = elements
-            .filter((el) => updatedElements.includes(el.id))
-            .map((el) => {
-                return {
-                    id: el.id,
-                    transform: {
-                        x: el.x,
-                        y: el.y,
-                        width: el.width,
-                        height: el.height,
-                        rotationAngle: el.rotationAngle,
-                    },
-                };
+        const elementsToUpdate = updatedElements
+            .filter(
+                (updatedEl) =>
+                    elements.some((el) => el.id === updatedEl.id) ||
+                    updatedEl.action === "delete"
+            )
+            .map((updatedEl) => {
+                const correspondingElement = elements.find(
+                    (el) => el.id === updatedEl.id
+                );
+                if (updatedEl.action === "delete") {
+                    return {
+                        id: updatedEl.id,
+                        action: updatedEl.action,
+                    };
+                } else {
+                    return {
+                        id: updatedEl.id,
+                        action: updatedEl.action,
+                        transform: {
+                            x: correspondingElement.x,
+                            y: correspondingElement.y,
+                            width: correspondingElement.width,
+                            height: correspondingElement.height,
+                            rotationAngle: correspondingElement.rotationAngle,
+                        },
+                    };
+                }
             });
         await updateFileImage(JSON.stringify(elementsToUpdate));
         setIssaving(false);
