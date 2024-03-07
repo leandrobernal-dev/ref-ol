@@ -259,7 +259,7 @@ const useHistory = () => {
         }
     };
 
-    return { executeCommand, undo, redo, history };
+    return { executeCommand, undo, redo, history, currentIndex };
 };
 
 export default useHistory;
