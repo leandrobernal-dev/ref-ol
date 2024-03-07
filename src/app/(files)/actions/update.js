@@ -23,3 +23,25 @@ export async function updateFile(fileId, prevState, formData) {
         return { message: error.message };
     }
 }
+
+export async function updateFileImage(file) {
+    const supabase = createClient();
+
+    try {
+        const updates = JSON.parse(file);
+
+        const promises = updates.map((update) => {
+            const { id, transform } = update;
+            return supabase
+                .from("Images")
+                .update({ transform: transform }) // Update only the 'transform' field
+                .match({ id }); // Match the ID for the update
+        });
+        // Execute all update promises in parallel
+        Promise.all(promises).catch((error) => {
+            return error;
+        });
+    } catch (error) {
+        return { message: error.message };
+    }
+}
