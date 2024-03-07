@@ -31,9 +31,11 @@ export default function FileContextProvider({ children, images }) {
                     };
                 });
             }
-            setElements(imageElements);
+            return imageElements;
         }
-        createImageElements();
+        createImageElements().then((imageElements) =>
+            setElements(imageElements)
+        );
     }, []);
 
     return (
