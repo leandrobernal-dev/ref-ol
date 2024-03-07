@@ -20,11 +20,14 @@ export default function FileContextProvider({ children, images, fileId }) {
     const { executeCommand, undo, redo, history, currentIndex } = useHistory();
 
     useEffect(() => {
-        const historyWithoutSelect = history.filter(
-            (command) =>
-                !(command instanceof SelectCommand) &&
-                !(command instanceof AddCommand)
-        );
+        // Use current history and remove select commands as it is not needed in the update, also remove add commands as it is already saved in the server
+        const historyWithoutSelect = [...history]
+            .slice(0, currentIndex + 1)
+            .filter(
+                (command) =>
+                    !(command instanceof SelectCommand) &&
+                    !(command instanceof AddCommand)
+            );
 
         if (historyWithoutSelect.length > 0) {
             const changedElementsIds = historyWithoutSelect
