@@ -4,23 +4,26 @@ class ImageElement {
         x,
         y,
         selected = false,
-        id = Math.random().toString(36).substring(2, 9)
+        id = Math.random().toString(36).substring(2, 9),
+        width = null,
+        height = null,
+        rotationAngle = 0
     ) {
         this.src = src;
         this.x = x;
         this.y = y;
-        this.width = null;
-        this.height = null;
+        this.width = width;
+        this.height = height;
         this.image = null;
-        this.rotationAngle = 0;
+        this.rotationAngle = rotationAngle;
         this.id = id;
         this.selected = selected;
     }
 
     async create() {
         this.image = await this.loadImage(this.src);
-        this.width = this.image.width;
-        this.height = this.image.height;
+        this.width = this.width ? this.width : this.image.width;
+        this.height = this.height ? this.height : this.image.height;
     }
 
     loadImage(src) {
