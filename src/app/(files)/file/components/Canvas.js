@@ -203,6 +203,14 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
             );
 
             const files = event.dataTransfer.files;
+            // return if at least one of the files exceeds over 500kb file size
+            if (Array.from(files).some((file) => file.size > 500000)) {
+                alert(
+                    "At least one of the file exceeds 500kb in size. Please upload a smaller file."
+                );
+                return;
+            }
+
             setAddLoaderOpen(true);
             setAddLoaderProgress({ total: files.length, finished: 0 });
 
