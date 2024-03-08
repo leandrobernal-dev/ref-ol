@@ -228,13 +228,19 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
 
                             // Check if all files have been processed
                             if (newElements.length === files.length) {
-                                const newFiles = await createImageFile(
-                                    JSON.stringify({ newElements, fileId })
-                                );
+                                const newAddedFiles = [];
+                                // Create new file one by one
+                                for (const newElement of newElements) {
+                                    const newFile = await createImageFile(
+                                        JSON.stringify({ newElement, fileId })
+                                    );
+                                    newAddedFiles.push(newFile[0]);
+                                }
+
                                 createElement(
                                     newElements.map((el, index) => ({
                                         ...el,
-                                        id: newFiles[index].id,
+                                        id: newAddedFiles[index].id,
                                     }))
                                 );
                                 setAddLoaderOpen(false);
