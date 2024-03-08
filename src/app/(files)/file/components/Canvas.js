@@ -504,6 +504,9 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                 x: translateX,
                 y: translateY,
             }));
+        } else {
+            setScale(0.3);
+            setPanOffset({ x: canvas.width / 2, y: canvas.height / 2 });
         }
     }, []);
     // Apply transformations to canvas context
