@@ -36,6 +36,7 @@ function KeyboardShortcuts({
             // Check for Ctrl + A (select all)
             if (ctrlKey && (key === "a" || key === "A")) {
                 // Check if all elements are already selected
+                event.preventDefault();
                 if (elements.every((el) => el.selected)) return;
 
                 const newSelectCommand = new SelectCommand(
