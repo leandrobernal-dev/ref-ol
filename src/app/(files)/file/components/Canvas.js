@@ -14,6 +14,7 @@ import { ZoomHandler } from "@/app/(files)/file/handlers/ZoomHandler";
 import { MouseDownHandler } from "@/app/(files)/file/handlers/MouseDownHandler";
 import {
     getMouseCoordinates,
+    getRotatedBoundingBox,
     getTransformControl,
     isOntopOfElement,
     multipleElementSelected,
@@ -38,7 +39,7 @@ import { createImageFile } from "@/app/(files)/actions/create";
 export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const canvasRef = useRef(null);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-    const [scale, setScale] = useState(0.3);
+    const [scale, setScale] = useState(1);
     const [windowSize, setWindowSize] = useState(null);
 
     const { elements, setElements, executeCommand, undo, redo, fileId } =
@@ -454,7 +455,57 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }, [windowSize]);
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (elements.length !== 0) {
+            let minX = Infinity;
+            let minY = Infinity;
+            let maxX = -Infinity;
+            let maxY = -Infinity;
 
+            // Iterate through each image to find the minimum and maximum coordinates
+            for (let i = 0; i < elements.length; i++) {
+                let image = elements[i];
+                let bbox = getRotatedBoundingBox(image);
+                minX = Math.min(minX, bbox.minX);
+                minY = Math.min(minY, bbox.minY);
+                maxX = Math.max(maxX, bbox.minX + bbox.width);
+                maxY = Math.max(maxY, bbox.minY + bbox.height);
+            }
+
+            // Adjusting for panOffset and scale
+            let rectX = minX;
+            let rectY = minY;
+            let rectWidth = maxX - minX;
+            let rectHeight = maxY - minY;
+
+            // Calculate the maximum scale factor needed to fit the rectangle within the canvas
+            const scaleX = canvas.width / rectWidth;
+            const scaleY = canvas.height / rectHeight;
+            const fitScale = Math.min(scaleX, scaleY);
+            const margin = 0.7; // Adjust this value as needed
+            let adjustedFitScale = fitScale * margin;
+
+            // Calculate the center of the rectangle
+            const rectCenterX = rectX + rectWidth / 2;
+            const rectCenterY = rectY + rectHeight / 2;
+
+            // Calculate the canvas center after applying the scale and panOffset
+            const canvasCenterX = canvas.width / 2;
+            const canvasCenterY = canvas.height / 2;
+
+            // Calculate the translation needed to center the rectangle
+            const translateX = canvasCenterX - rectCenterX * adjustedFitScale;
+            const translateY = canvasCenterY - rectCenterY * adjustedFitScale;
+
+            // Set the scale and panOffset
+            setScale(adjustedFitScale);
+            setPanOffset(() => ({
+                x: translateX,
+                y: translateY,
+            }));
+        }
+    }, []);
     // Apply transformations to canvas context
     useLayoutEffect(() => {
         const canvas = canvasRef.current;
@@ -478,11 +529,6 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
 
     // Rerender when window resizes, disable default page zoom
     useEffect(() => {
-        // Center canvas onload
-        setPanOffset({
-            x: canvasRef.current.width / 2,
-            y: canvasRef.current.height / 2,
-        });
         const handleResize = () => {
             setWindowSize({
                 width: window.innerWidth,
