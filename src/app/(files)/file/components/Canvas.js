@@ -193,6 +193,55 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
         function handleDragOver(event) {
             event.preventDefault();
         }
+        function fitRectanglesIntoGrid(rectangles, mouseX, mouseY, gap = 10) {
+            // Find the maximum dimensions of the rectangles
+            let maxWidth = 0;
+            let maxHeight = 0;
+            for (const rectangle of rectangles) {
+                if (rectangle.width > maxWidth) {
+                    maxWidth = rectangle.width;
+                }
+                if (rectangle.height > maxHeight) {
+                    maxHeight = rectangle.height;
+                }
+            }
+
+            // Calculate the grid dimensions based on the maximum dimensions of the rectangles
+            const gridWidth = Math.max(maxWidth, mouseX) + maxWidth + gap; // Add gap
+            const gridHeight = Math.max(maxHeight, mouseY) + maxHeight + gap; // Add gap
+
+            // Sort rectangles by decreasing height
+            rectangles.sort((a, b) => b.height - a.height);
+
+            let currentX = mouseX;
+            let currentY = mouseY;
+            let maxHeightInRow = 0;
+
+            for (const rectangle of rectangles) {
+                // Check if the current rectangle can fit in the remaining space of the row
+                if (currentX + rectangle.width > gridWidth) {
+                    // Move to the next row
+                    currentX = mouseX;
+                    currentY += maxHeightInRow + gap; // Add gap
+                    maxHeightInRow = 0;
+                }
+
+                // Update the starting position of the rectangle
+                rectangle.x = currentX;
+                rectangle.y = currentY;
+
+                // Update the max height in the row if necessary
+                if (rectangle.height > maxHeightInRow) {
+                    maxHeightInRow = rectangle.height;
+                }
+
+                // Move to the next position in the row
+                currentX += rectangle.width + gap; // Add gap
+            }
+
+            return rectangles;
+        }
+
         function handleDrop(event) {
             event.preventDefault();
 
@@ -239,6 +288,11 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                             if (newElements.length === files.length) {
                                 const newAddedFiles = [];
                                 // Create new file one by one
+                                const packedElements = fitRectanglesIntoGrid(
+                                    newElements,
+                                    mouseCoords.x,
+                                    mouseCoords.y
+                                ); // Pack elements into grid
                                 for (const newElement of newElements) {
                                     const newFile = await createImageFile(
                                         JSON.stringify({ newElement, fileId })
@@ -247,7 +301,7 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                                 }
 
                                 createElement(
-                                    newElements.map((el, index) => ({
+                                    packedElements.map((el, index) => ({
                                         ...el,
                                         id: newAddedFiles[index].id,
                                     }))
