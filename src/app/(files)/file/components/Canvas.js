@@ -260,6 +260,16 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
                 );
                 return;
             }
+            if (
+                Array.from(files).some(
+                    (file) => !file.type.startsWith("image/")
+                )
+            ) {
+                alert(
+                    "At least one of the files is not an image type. Please upload only image files."
+                );
+                return;
+            }
 
             setAddLoaderOpen(true);
             setAddLoaderProgress({ total: files.length, finished: 0 });
