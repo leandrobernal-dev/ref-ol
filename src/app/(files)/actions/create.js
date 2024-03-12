@@ -3,10 +3,11 @@
 import { createClient } from "@/utils/supabase/server";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function createFile(user, prevState, formData) {
     const supabase = createClient();
-
+    let id;
     try {
         const data = {
             user_id: user.id,
@@ -19,11 +20,11 @@ export async function createFile(user, prevState, formData) {
             .insert([data])
             .select();
         revalidatePath("/files");
-
-        return files;
+        id = files[0].id;
     } catch (error) {
         return { message: error.message };
     }
+    redirect("/file/" + id);
 }
 
 export async function createImageFile(newFile) {
