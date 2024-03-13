@@ -1,4 +1,4 @@
-import { multipleElementSelected } from "@/app/(app)/file/utilities/CanvasUtils";
+import { multipleElementSelected } from "@/app/app/file/utilities/CanvasUtils";
 
 export function DragHandler(
     elements,

@@ -1,7 +1,7 @@
 "use client";
-import { FileCard } from "@/app/(app)/components/FileCard";
-import { FileActionModal } from "@/app/(app)/components/FileActionModal";
-import { FileDataContext } from "@/app/(app)/context/FilesContext";
+import { FileCard } from "@/app/app/components/FileCard";
+import { FileActionModal } from "@/app/app/components/FileActionModal";
+import { FileDataContext } from "@/app/app/context/FilesContext";
 import { useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { ExitIcon } from "@radix-ui/react-icons";

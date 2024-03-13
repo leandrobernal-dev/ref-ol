@@ -1,10 +1,7 @@
 import { useContext, useEffect } from "react";
 import hotkeys from "hotkeys-js";
-import {
-    DeleteCommand,
-    SelectCommand,
-} from "@/app/(app)/file/hooks/useHistory";
-import { FileContext } from "@/app/(app)/file/context/FileContext";
+import { DeleteCommand, SelectCommand } from "@/app/app/file/hooks/useHistory";
+import { FileContext } from "@/app/app/file/context/FileContext";
 
 function KeyboardShortcuts({
     elements,

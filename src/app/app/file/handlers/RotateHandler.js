@@ -2,7 +2,7 @@ import {
     calculateMidpoint,
     multipleElementSelected,
     rotate,
-} from "@/app/(app)/file/utilities/CanvasUtils";
+} from "@/app/app/file/utilities/CanvasUtils";
 
 export function RotateHandler(
     elements,

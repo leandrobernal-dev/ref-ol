@@ -1,4 +1,4 @@
-const { minZoom, maxZoom } = require("@/app/(app)/file/config/config");
+const { minZoom, maxZoom } = require("@/app/app/file/config/config");
 
 export function ZoomHandler(
     event,

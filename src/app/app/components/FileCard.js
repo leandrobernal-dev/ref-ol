@@ -1,11 +1,11 @@
 import * as React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DeleteFileModal } from "@/app/(app)/components/DeleteFileModal";
+import { DeleteFileModal } from "@/app/app/components/DeleteFileModal";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Pencil2Icon } from "@radix-ui/react-icons";
-import { FileActionModal } from "@/app/(app)/components/FileActionModal";
+import { FileActionModal } from "@/app/app/components/FileActionModal";
 
 const Thumbnail = ({ url }) => {
     const placeholder =
@@ -24,7 +24,7 @@ export function FileCard({ file }) {
         <Card className="w-full rounded-none">
             <CardHeader className="p-0 relative aspect-square">
                 <Link
-                    href={"/file/" + file.id}
+                    href={"/app/file/" + file.id}
                     className="aspect-square overflow-hidden grid grid-cols-2 gap-1 p-4"
                 >
                     <div className="relative  h-full">

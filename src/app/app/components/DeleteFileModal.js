@@ -1,5 +1,5 @@
-import { deleteFile } from "@/app/(app)/actions/delete";
-import { FileDataContext } from "@/app/(app)/context/FilesContext";
+import { deleteFile } from "@/app/app/actions/delete";
+import { FileDataContext } from "@/app/app/context/FilesContext";
 import {
     AlertDialog,
     AlertDialogAction,

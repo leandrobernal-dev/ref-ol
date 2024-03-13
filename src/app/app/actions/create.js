@@ -24,8 +24,8 @@ export async function createFile(prevState, formData) {
     } catch (error) {
         return { message: error.message };
     }
-    revalidatePath("/files");
-    redirect("/file/" + id);
+    revalidatePath("/app/files");
+    redirect("/app/file/" + id);
 }
 
 export async function createImageFile(newFile) {
@@ -60,6 +60,6 @@ export async function createImageFile(newFile) {
         Body: arrayBuffer,
     });
     await s3Client.send(command);
-    revalidatePath("/file", "layout");
+    revalidatePath("/app/file", "layout");
     return JSON.stringify(newImage);
 }

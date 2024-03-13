@@ -1,10 +1,10 @@
 "use client";
 
-import AddLoader from "@/app/(app)/file/components/AddLoader";
-import Canvas from "@/app/(app)/file/components/Canvas";
-import ContextMenuProvider from "@/app/(app)/file/components/ContextMenu";
-import Loader from "@/app/(app)/file/components/Loader";
-import { FileContext } from "@/app/(app)/file/context/FileContext";
+import AddLoader from "@/app/app/file/components/AddLoader";
+import Canvas from "@/app/app/file/components/Canvas";
+import ContextMenuProvider from "@/app/app/file/components/ContextMenu";
+import Loader from "@/app/app/file/components/Loader";
+import { FileContext } from "@/app/app/file/context/FileContext";
 import { Button } from "@/components/ui/button";
 import { Cross1Icon, ReloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export default function FilePageLayout() {
                                             : "Save Changes"}
                                     </Button>
                                 )}
-                                <Link href={"/files"}>
+                                <Link href={"/app/files"}>
                                     <Button variant="outline" size="icon">
                                         <Cross1Icon className="h-4 w-4" />
                                     </Button>

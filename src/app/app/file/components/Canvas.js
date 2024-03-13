@@ -7,34 +7,34 @@ import {
     useRef,
     useState,
 } from "react";
-import ImageElement from "@/app/(app)/file/classes/ImageElement";
-import { usePressedKeys } from "@/app/(app)/file/hooks/customHooks";
-import { cursorType } from "@/app/(app)/file/utilities/CursorUtils";
-import { ZoomHandler } from "@/app/(app)/file/handlers/ZoomHandler";
-import { MouseDownHandler } from "@/app/(app)/file/handlers/MouseDownHandler";
+import ImageElement from "@/app/app/file/classes/ImageElement";
+import { usePressedKeys } from "@/app/app/file/hooks/customHooks";
+import { cursorType } from "@/app/app/file/utilities/CursorUtils";
+import { ZoomHandler } from "@/app/app/file/handlers/ZoomHandler";
+import { MouseDownHandler } from "@/app/app/file/handlers/MouseDownHandler";
 import {
     getMouseCoordinates,
     getRotatedBoundingBox,
     getTransformControl,
     isOntopOfElement,
     multipleElementSelected,
-} from "@/app/(app)/file/utilities/CanvasUtils";
-import { PanHandler } from "@/app/(app)/file/handlers/PanHandler";
-import { DragSelectHandler } from "@/app/(app)/file/handlers/DragSelectHandler";
-import { DragHandler } from "@/app/(app)/file/handlers/DragHandler";
-import { ResizeHandler } from "@/app/(app)/file/handlers/ResizeHandler";
-import { RotateHandler } from "@/app/(app)/file/handlers/RotateHandler";
-import { updateCanvas } from "@/app/(app)/file/utilities/CanvasDrawing";
+} from "@/app/app/file/utilities/CanvasUtils";
+import { PanHandler } from "@/app/app/file/handlers/PanHandler";
+import { DragSelectHandler } from "@/app/app/file/handlers/DragSelectHandler";
+import { DragHandler } from "@/app/app/file/handlers/DragHandler";
+import { ResizeHandler } from "@/app/app/file/handlers/ResizeHandler";
+import { RotateHandler } from "@/app/app/file/handlers/RotateHandler";
+import { updateCanvas } from "@/app/app/file/utilities/CanvasDrawing";
 import {
     AddCommand,
     MoveCommand,
     ResizeCommand,
     RotateCommand,
     SelectCommand,
-} from "@/app/(app)/file/hooks/useHistory";
-import KeyboardShortcuts from "@/app/(app)/file/utilities/Shortcuts";
-import { FileContext } from "@/app/(app)/file/context/FileContext";
-import { createImageFile } from "@/app/(app)/actions/create";
+} from "@/app/app/file/hooks/useHistory";
+import KeyboardShortcuts from "@/app/app/file/utilities/Shortcuts";
+import { FileContext } from "@/app/app/file/context/FileContext";
+import { createImageFile } from "@/app/app/actions/create";
 
 export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const canvasRef = useRef(null);

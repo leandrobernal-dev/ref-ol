@@ -1,6 +1,6 @@
 import { Poppins } from "next/font/google";
 import { ThemeProvider } from "@/theme/ThemeProvider";
-import FileDataContextProvider from "@/app/(app)/context/FilesContext";
+import FileDataContextProvider from "@/app/app/context/FilesContext";
 
 import "../globals.css";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";

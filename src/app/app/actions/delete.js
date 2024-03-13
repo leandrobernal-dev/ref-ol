@@ -26,7 +26,7 @@ export async function deleteFile(file) {
         });
         await Images.deleteMany({ file_id: file.id });
         await Files.findByIdAndDelete({ _id: file.id });
-        revalidatePath("/files");
+        revalidatePath("/app/files");
     } catch (error) {
         return { message: error.message };
     }

@@ -21,11 +21,11 @@ export async function updateFile(fileId, prevState, formData) {
     } catch (error) {
         return { message: error.message };
     }
-    revalidatePath("/files");
+    revalidatePath("/app/files");
 }
 
 export async function updateFileImage(file) {
-    revalidatePath("/file", "layout");
+    revalidatePath("/app/file", "layout");
 
     const s3Client = new S3Client({
         region: process.env.AWS_REGION,

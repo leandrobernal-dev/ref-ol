@@ -1,9 +1,9 @@
-import ImageElement from "@/app/(app)/file/classes/ImageElement";
+import ImageElement from "@/app/app/file/classes/ImageElement";
 import {
     getTransformControl,
     isOntopOfElement,
     multipleElementSelected,
-} from "@/app/(app)/file/utilities/CanvasUtils";
+} from "@/app/app/file/utilities/CanvasUtils";
 
 export function MouseDownHandler(
     event,
