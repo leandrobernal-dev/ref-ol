@@ -6,7 +6,7 @@ import { useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { ExitIcon } from "@radix-ui/react-icons";
 import { ThemeToggle } from "@/theme/ThemeToggler";
-import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 export default function FilesPage() {
     const { optimisticFiles: files } = useContext(FileDataContext);
@@ -24,12 +24,10 @@ export default function FilesPage() {
                 </section>
                 <section className="flex items-center gap-2">
                     <ThemeToggle />
-                    <Link href="/auth/logout">
-                        <Button variant="outline">
-                            <ExitIcon className="mr-2 h-4 w-4" />
-                            Logout
-                        </Button>
-                    </Link>
+                    <Button onClick={() => signOut()} variant="outline">
+                        <ExitIcon className="mr-2 h-4 w-4" />
+                        Logout
+                    </Button>
                 </section>
             </section>
             {files.length === 0 ? (
