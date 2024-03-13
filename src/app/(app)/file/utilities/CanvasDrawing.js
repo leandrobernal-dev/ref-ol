@@ -2,7 +2,7 @@ import {
     getRotatedBoundingBox,
     isOntopOfElement,
     rotate,
-} from "@/app/(files)/file/utilities/CanvasUtils";
+} from "@/app/(app)/file/utilities/CanvasUtils";
 
 // All drawing functions for the canvas are defined here
 export function updateCanvas(

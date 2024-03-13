@@ -1,11 +1,11 @@
 "use client";
-import { updateFileImage } from "@/app/(files)/actions/update";
-import ImageElement from "@/app/(files)/file/classes/ImageElement";
+import { updateFileImage } from "@/app/(app)/actions/update";
+import ImageElement from "@/app/(app)/file/classes/ImageElement";
 import useHistory, {
     AddCommand,
     DeleteCommand,
     SelectCommand,
-} from "@/app/(files)/file/hooks/useHistory";
+} from "@/app/(app)/file/hooks/useHistory";
 import { createContext, useEffect, useState } from "react";
 
 export const FileContext = createContext();

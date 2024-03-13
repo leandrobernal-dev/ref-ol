@@ -1,8 +1,5 @@
-import {
-    minImageHeight,
-    minImageWidth,
-} from "@/app/(files)/file/config/config";
-import { multipleElementSelected } from "@/app/(files)/file/utilities/CanvasUtils";
+import { minImageHeight, minImageWidth } from "@/app/(app)/file/config/config";
+import { multipleElementSelected } from "@/app/(app)/file/utilities/CanvasUtils";
 
 export function ResizeHandler(
     elements,

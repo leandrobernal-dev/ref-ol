@@ -3,8 +3,8 @@ import hotkeys from "hotkeys-js";
 import {
     DeleteCommand,
     SelectCommand,
-} from "@/app/(files)/file/hooks/useHistory";
-import { FileContext } from "@/app/(files)/file/context/FileContext";
+} from "@/app/(app)/file/hooks/useHistory";
+import { FileContext } from "@/app/(app)/file/context/FileContext";
 
 function KeyboardShortcuts({
     elements,

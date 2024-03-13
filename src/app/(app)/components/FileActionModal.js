@@ -1,6 +1,6 @@
 import { useFormState } from "react-dom";
-import { createFile } from "@/app/(files)/actions/create";
-import { NewFileSubmit } from "@/app/(files)/components/NewFileSubmit";
+import { createFile } from "@/app/(app)/actions/create";
+import { NewFileSubmit } from "@/app/(app)/components/NewFileSubmit";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -13,8 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useContext, useState } from "react";
-import { FileDataContext } from "@/app/(files)/context/FilesContext";
-import { updateFile } from "@/app/(files)/actions/update";
+import { FileDataContext } from "@/app/(app)/context/FilesContext";
+import { updateFile } from "@/app/(app)/actions/update";
 
 const initialState = {
     message: "",

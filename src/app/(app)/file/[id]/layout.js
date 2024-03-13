@@ -1,4 +1,4 @@
-import FileContextProvider from "@/app/(files)/file/context/FileContext";
+import FileContextProvider from "@/app/(app)/file/context/FileContext";
 import Files from "@/models/Files";
 import Images from "@/models/Images";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";

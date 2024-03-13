@@ -1,10 +1,10 @@
 "use client";
 
-import AddLoader from "@/app/(files)/file/components/AddLoader";
-import Canvas from "@/app/(files)/file/components/Canvas";
-import ContextMenuProvider from "@/app/(files)/file/components/ContextMenu";
-import Loader from "@/app/(files)/file/components/Loader";
-import { FileContext } from "@/app/(files)/file/context/FileContext";
+import AddLoader from "@/app/(app)/file/components/AddLoader";
+import Canvas from "@/app/(app)/file/components/Canvas";
+import ContextMenuProvider from "@/app/(app)/file/components/ContextMenu";
+import Loader from "@/app/(app)/file/components/Loader";
+import { FileContext } from "@/app/(app)/file/context/FileContext";
 import { Button } from "@/components/ui/button";
 import { Cross1Icon, ReloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";

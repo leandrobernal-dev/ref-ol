@@ -1,4 +1,4 @@
-import { getHighlightedElements } from "@/app/(files)/file/utilities/CanvasUtils";
+import { getHighlightedElements } from "@/app/(app)/file/utilities/CanvasUtils";
 
 export function DragSelectHandler(
     setInitialTransform,
