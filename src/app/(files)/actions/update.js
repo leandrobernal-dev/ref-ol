@@ -1,34 +1,32 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import Files from "@/models/Files";
+import Images from "@/models/Images";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { revalidatePath } from "next/cache";
 
 export async function updateFile(fileId, prevState, formData) {
-    const supabase = createClient();
-
     try {
         const data = {
             name: formData.get("file-name"),
             description: formData.get("description"),
         };
-
-        const { data: file, error } = await supabase
-            .from("Files")
-            .update(data)
-            .eq("id", fileId)
-            .select();
-        revalidatePath("/files");
-        return file;
+        await Files.findOneAndUpdate(
+            { _id: fileId },
+            {
+                $set: data,
+            },
+            { new: true }
+        );
     } catch (error) {
         return { message: error.message };
     }
+    revalidatePath("/files");
 }
 
 export async function updateFileImage(file) {
     revalidatePath("/file", "layout");
 
-    const supabase = createClient();
     const s3Client = new S3Client({
         region: process.env.AWS_REGION,
         credentials: {
@@ -42,23 +40,24 @@ export async function updateFileImage(file) {
         const promises = updates.map(async (update) => {
             const { id, action, transform } = update;
             if (action === "delete") {
-                const { data, error } = await supabase
-                    .from("Images")
-                    .select("key")
-                    .eq("id", id)
-                    .single();
-                const key = data.key;
-                const command = new DeleteObjectCommand({
-                    Bucket: process.env.AWS_BUCKET_NAME,
-                    Key: key,
-                });
-                await s3Client.send(command);
-                await supabase.from("Images").delete().match({ id });
+                try {
+                    // Find the image by ID to get the key
+                    const image = await Images.findById(id).select("key");
+                    const key = image.key;
+                    // Delete the object from S3
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: key,
+                    });
+                    await s3Client.send(command);
+
+                    // Delete the image from MongoDB
+                    await Images.findByIdAndDelete(id);
+                } catch (error) {
+                    console.error("Error deleting image:", error);
+                }
             } else {
-                return supabase
-                    .from("Images")
-                    .update({ transform }) // Update the 'transform' field
-                    .match({ id }); // Match the ID for the update
+                await Images.findByIdAndUpdate(id, { transform });
             }
         });
         // Execute all promises in parallel

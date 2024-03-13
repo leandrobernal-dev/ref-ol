@@ -11,6 +11,7 @@ import { createContext, useEffect, useState } from "react";
 export const FileContext = createContext();
 
 export default function FileContextProvider({ children, images, fileId }) {
+    images = JSON.parse(images);
     const [updatedElements, setUpdatedelements] = useState([]);
     const [isSaving, setIssaving] = useState(false);
     const [elements, setElements] = useState([]);

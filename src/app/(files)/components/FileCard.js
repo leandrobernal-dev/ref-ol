@@ -28,11 +28,11 @@ export function FileCard({ file }) {
                     className="aspect-square overflow-hidden grid grid-cols-2 gap-1 p-4"
                 >
                     <div className="relative  h-full">
-                        <Thumbnail url={file.thumbnail.data[0]?.url} />
+                        <Thumbnail url={file.thumbnails[0]?.url} />
                     </div>
                     <div className="grid grid-rows-2 gap-1 relative aspect-square  w-full h-full">
-                        <Thumbnail url={file.thumbnail.data[1]?.url} />
-                        <Thumbnail url={file.thumbnail.data[2]?.url} />
+                        <Thumbnail url={file.thumbnails[1]?.url} />
+                        <Thumbnail url={file.thumbnails[2]?.url} />
                     </div>
                 </Link>
 

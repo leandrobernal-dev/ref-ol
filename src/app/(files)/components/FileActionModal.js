@@ -22,9 +22,7 @@ const initialState = {
 export function FileActionModal({ children, action, file }) {
     const { user, setOptimisticFile } = useContext(FileDataContext);
     const [formState, formAction] = useFormState(
-        action === "create"
-            ? createFile.bind(null, user)
-            : updateFile.bind(null, file.id),
+        action === "create" ? createFile : updateFile.bind(null, file.id),
         initialState
     );
     const [open, setOpen] = useState(false);

@@ -277,60 +277,56 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
             const newElements = []; // Array to store new elements
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                if (file && file.type.startsWith("image/")) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const imageData = event.target.result;
-                        const image = new Image();
-                        image.src = imageData;
-                        image.onload = async () => {
-                            const newElement = new ImageElement({
-                                src: image.src,
-                                x: mouseCoords.x - image.width / 2,
-                                y: mouseCoords.y - image.height / 2,
-                                selected: true,
-                                key: file.name,
-                            });
-                            await newElement.create();
-                            newElements.push(newElement); // Add new element to the array
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const imageData = event.target.result;
+                    const image = new Image();
+                    image.src = imageData;
+                    image.onload = async () => {
+                        const newElement = new ImageElement({
+                            src: image.src,
+                            x: mouseCoords.x - image.width / 2,
+                            y: mouseCoords.y - image.height / 2,
+                            selected: true,
+                            key: file.name,
+                        });
+                        await newElement.create();
+                        newElements.push(newElement); // Add new element to the array
 
-                            // Check if all files have been processed
-                            if (newElements.length === files.length) {
-                                const newAddedFiles = [];
-                                // Create new file one by one
-                                const packedElements = fitRectanglesIntoGrid(
-                                    newElements,
-                                    mouseCoords.x,
-                                    mouseCoords.y
-                                ); // Pack elements into grid
-                                for (const newElement of newElements) {
-                                    const newFile = await createImageFile(
-                                        JSON.stringify({ newElement, fileId })
-                                    );
-                                    newAddedFiles.push(newFile[0]);
-                                }
-
-                                createElement(
-                                    packedElements.map((el, index) => ({
-                                        ...el,
-                                        id: newAddedFiles[index].id,
-                                    }))
+                        // Check if all files have been processed
+                        if (newElements.length === files.length) {
+                            const newAddedFiles = [];
+                            // Create new file one by one
+                            const packedElements = fitRectanglesIntoGrid(
+                                newElements,
+                                mouseCoords.x,
+                                mouseCoords.y
+                            ); // Pack elements into grid
+                            for (const newElement of newElements) {
+                                const newFile = await createImageFile(
+                                    JSON.stringify({ newElement, fileId })
                                 );
-                                setAddLoaderOpen(false);
+                                newAddedFiles.push(JSON.parse(newFile));
                             }
-                        };
+
+                            createElement(
+                                packedElements.map((el, index) => ({
+                                    ...el,
+                                    id: newAddedFiles[index].id,
+                                }))
+                            );
+                            setAddLoaderOpen(false);
+                        }
                     };
-                    reader.onloadend = () => {
-                        // Update loader progress
-                        setAddLoaderProgress((prev) => ({
-                            ...prev,
-                            finished: prev.finished + 1,
-                        }));
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    console.log("File dropped is not an image.");
-                }
+                };
+                reader.onloadend = () => {
+                    // Update loader progress
+                    setAddLoaderProgress((prev) => ({
+                        ...prev,
+                        finished: prev.finished + 1,
+                    }));
+                };
+                reader.readAsDataURL(file);
             }
         }
 

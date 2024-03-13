@@ -9,7 +9,7 @@ export default function FileDataContextProvider({
     user: currentUser,
 }) {
     const [optimisticFiles, setOptimisticFile] = useOptimistic(
-        myFiles,
+        JSON.parse(myFiles),
         (state, { file, action }) => {
             switch (action) {
                 case "add":
