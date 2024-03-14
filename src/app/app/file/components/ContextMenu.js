@@ -15,7 +15,8 @@ export default function ContextMenuProvider({
     setAddLoaderProgress,
     fileId,
 }) {
-    const { handleSave, executeCommand, setElements } = useContext(FileContext);
+    const { handleSave, executeCommand, setElements, undo, redo } =
+        useContext(FileContext);
     const handleFileUpload = () => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -63,11 +64,11 @@ export default function ContextMenuProvider({
                     <ContextMenuShortcut>Ctrl+V</ContextMenuShortcut>
                 </ContextMenuItem>
                 <ContextMenuItem inset>Auto Arrange</ContextMenuItem>
-                <ContextMenuItem inset>
+                <ContextMenuItem inset onClick={undo}>
                     Undo
                     <ContextMenuShortcut>Ctrl+Z</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem inset>
+                <ContextMenuItem inset onClick={redo}>
                     Redo
                     <ContextMenuShortcut>Ctrl+Y</ContextMenuShortcut>
                 </ContextMenuItem>
