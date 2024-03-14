@@ -1,16 +1,8 @@
 import {
     ContextMenu,
-    ContextMenuCheckboxItem,
     ContextMenuContent,
     ContextMenuItem,
-    ContextMenuLabel,
-    ContextMenuRadioGroup,
-    ContextMenuRadioItem,
-    ContextMenuSeparator,
     ContextMenuShortcut,
-    ContextMenuSub,
-    ContextMenuSubContent,
-    ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
@@ -20,51 +12,34 @@ export default function ContextMenuProvider({ children }) {
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-64">
                 <ContextMenuItem inset>
-                    Back
-                    <ContextMenuShortcut>⌘[</ContextMenuShortcut>
+                    Add Images
+                    <ContextMenuShortcut>⇧A</ContextMenuShortcut>
                 </ContextMenuItem>
                 <ContextMenuItem inset disabled>
-                    Forward
-                    <ContextMenuShortcut>⌘]</ContextMenuShortcut>
+                    Delete
+                    <ContextMenuShortcut>⌫/⌦</ContextMenuShortcut>
                 </ContextMenuItem>
                 <ContextMenuItem inset>
-                    Reload
-                    <ContextMenuShortcut>⌘R</ContextMenuShortcut>
+                    Copy
+                    <ContextMenuShortcut>Ctrl+C</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuSub>
-                    <ContextMenuSubTrigger inset>
-                        More Tools
-                    </ContextMenuSubTrigger>
-                    <ContextMenuSubContent className="w-48">
-                        <ContextMenuItem>
-                            Save Page As...
-                            <ContextMenuShortcut>⇧⌘S</ContextMenuShortcut>
-                        </ContextMenuItem>
-                        <ContextMenuItem>Create Shortcut...</ContextMenuItem>
-                        <ContextMenuItem>Name Window...</ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem>Developer Tools</ContextMenuItem>
-                    </ContextMenuSubContent>
-                </ContextMenuSub>
-                <ContextMenuSeparator />
-                <ContextMenuCheckboxItem checked>
-                    Show Bookmarks Bar
-                    <ContextMenuShortcut>⌘⇧B</ContextMenuShortcut>
-                </ContextMenuCheckboxItem>
-                <ContextMenuCheckboxItem>
-                    Show Full URLs
-                </ContextMenuCheckboxItem>
-                <ContextMenuSeparator />
-                <ContextMenuRadioGroup value="pedro">
-                    <ContextMenuLabel inset>People</ContextMenuLabel>
-                    <ContextMenuSeparator />
-                    <ContextMenuRadioItem value="pedro">
-                        Pedro Duarte
-                    </ContextMenuRadioItem>
-                    <ContextMenuRadioItem value="colm">
-                        Colm Tuite
-                    </ContextMenuRadioItem>
-                </ContextMenuRadioGroup>
+                <ContextMenuItem inset>
+                    Paste
+                    <ContextMenuShortcut>Ctrl+V</ContextMenuShortcut>
+                </ContextMenuItem>
+                <ContextMenuItem inset>Auto Arrange</ContextMenuItem>
+                <ContextMenuItem inset>
+                    Undo
+                    <ContextMenuShortcut>Ctrl+Z</ContextMenuShortcut>
+                </ContextMenuItem>
+                <ContextMenuItem inset>
+                    Redo
+                    <ContextMenuShortcut>Ctrl+Y</ContextMenuShortcut>
+                </ContextMenuItem>
+                <ContextMenuItem inset>
+                    Save
+                    <ContextMenuShortcut>Ctrl+S</ContextMenuShortcut>
+                </ContextMenuItem>
             </ContextMenuContent>
         </ContextMenu>
     );
