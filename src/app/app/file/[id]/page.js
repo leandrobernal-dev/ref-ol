@@ -16,14 +16,27 @@ export default function FilePageLayout() {
         finished: 0,
         total: 0,
     });
-    const { progress, updatedElements, isSaving, handleSave } =
-        useContext(FileContext);
+    const {
+        progress,
+        updatedElements,
+        isSaving,
+        handleSave,
+        fileId,
+        executeCommand,
+        setElements,
+    } = useContext(FileContext);
 
     return (
         <>
             {progress.finished === progress.total ? (
                 <>
-                    <ContextMenuProvider>
+                    <ContextMenuProvider
+                        setAddLoaderOpen={setIsAdding}
+                        fileId={fileId}
+                        executeCommand={executeCommand}
+                        setAddLoaderProgress={setAddingProgress}
+                        setElements={setElements}
+                    >
                         <div className="relative">
                             <Canvas
                                 setAddLoaderOpen={setIsAdding}

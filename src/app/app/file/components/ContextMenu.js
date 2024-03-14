@@ -1,3 +1,4 @@
+import handleUpload from "@/app/app/file/handlers/HandleUpload";
 import {
     ContextMenu,
     ContextMenuContent,
@@ -6,13 +7,46 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-export default function ContextMenuProvider({ children }) {
+export default function ContextMenuProvider({
+    children,
+    setAddLoaderOpen,
+    setAddLoaderProgress,
+    fileId,
+    setElements,
+    executeCommand,
+}) {
+    const handleFileUpload = () => {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.multiple = true;
+        fileInput.accept = "image/*";
+        fileInput.style.display = "none";
+
+        document.body.appendChild(fileInput);
+        fileInput.click();
+
+        // Handle file selection
+        fileInput.addEventListener("change", (event) => {
+            const files = event.target.files;
+            handleUpload(
+                files,
+                0,
+                0,
+                setAddLoaderOpen,
+                setAddLoaderProgress,
+                fileId,
+                setElements,
+                executeCommand
+            );
+            document.body.removeChild(fileInput);
+        });
+    };
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent className="w-64">
-                <ContextMenuItem inset>
-                    Add Images
+                <ContextMenuItem inset onClick={handleFileUpload}>
+                    Upload
                     <ContextMenuShortcut>⇧A</ContextMenuShortcut>
                 </ContextMenuItem>
                 <ContextMenuItem inset disabled>
