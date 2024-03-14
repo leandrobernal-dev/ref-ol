@@ -8,37 +8,37 @@ import dbConnect from "@/db/database";
 
 export const options = {
     providers: [
-        CredentialsProvider({
-            name: "Credentials",
-            credentials: {
-                email: {
-                    label: "Email:",
-                    type: "text",
-                    placeholder: "Your Email",
-                },
-                password: {
-                    label: "Password",
-                    type: "password",
-                    placeholder: "*******",
-                },
-            },
-            async authorize(credentials) {
-                await dbConnect();
-                const user = await User.findOne({
-                    email: credentials.email,
-                }).populate("urls");
-                if (!user) throw new Error("Email or Password is Incorrect!");
+        // CredentialsProvider({
+        //     name: "Credentials",
+        //     credentials: {
+        //         email: {
+        //             label: "Email:",
+        //             type: "text",
+        //             placeholder: "Your Email",
+        //         },
+        //         password: {
+        //             label: "Password",
+        //             type: "password",
+        //             placeholder: "*******",
+        //         },
+        //     },
+        //     async authorize(credentials) {
+        //         await dbConnect();
+        //         const user = await User.findOne({
+        //             email: credentials.email,
+        //         });
+        //         if (!user) throw new Error("Email or Password is Incorrect!");
 
-                const compare = await bcrypt.compare(
-                    credentials.password,
-                    user.password
-                );
-                if (!compare)
-                    throw new Error("Email or Password is Incorrect!");
+        //         const compare = await bcrypt.compare(
+        //             credentials.password,
+        //             user.password
+        //         );
+        //         if (!compare)
+        //             throw new Error("Email or Password is Incorrect!");
 
-                return user;
-            },
-        }),
+        //         return user;
+        //     },
+        // }),
         GithubProvicer({
             clientId: process.env.GITHUB_ID,
             clientSecret: process.env.GITHUB_SECRET,
@@ -56,10 +56,9 @@ export const options = {
         }),
     ],
     secret: process.env.NEXTAUTH_SECRET,
-    // pages: {
-    //     signIn: "/auth/login",
-    //     newUser: "/auth/register",
-    // },
+    pages: {
+        signIn: "/auth",
+    },
     callbacks: {
         async signIn({ user, profile, account, email, credentials }) {
             // console.log({ account, profile });
