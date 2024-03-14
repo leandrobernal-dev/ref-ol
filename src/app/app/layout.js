@@ -10,6 +10,7 @@ import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import Files from "@/models/Files";
 import Images from "@/models/Images";
+import dbConnect from "@/db/database";
 
 const poppins = Poppins({
     subsets: ["latin"],
@@ -38,6 +39,7 @@ async function getSignedUrlForKey(key) {
     return url;
 }
 export default async function RootLayout({ children, session }) {
+    await dbConnect();
     const { user } = await getServerSession();
     const currentUser = await User.findOne({ email: user.email });
     let files = await Files.find({ created_by: currentUser }).populate({
