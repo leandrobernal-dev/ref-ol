@@ -43,7 +43,11 @@ export function FileCard({ file }) {
                         action="update"
                         file={file}
                         children={
-                            <Button variant="outline" size="icon">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="shadow-lg shadow-black"
+                            >
                                 <Pencil2Icon />
                             </Button>
                         }

@@ -20,7 +20,11 @@ export function DeleteFileModal({ file }) {
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="shadow-lg shadow-black"
+                >
                     <TrashIcon />
                 </Button>
             </AlertDialogTrigger>
