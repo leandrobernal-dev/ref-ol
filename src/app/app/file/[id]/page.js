@@ -8,26 +8,25 @@ import { FileContext } from "@/app/app/file/context/FileContext";
 import { Button } from "@/components/ui/button";
 import { Cross1Icon, ReloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 
 export default function FilePageLayout() {
-    const [isAdding, setIsAdding] = useState(false);
-    const [addingProgress, setAddingProgress] = useState({
-        finished: 0,
-        total: 0,
-    });
-    const { progress, updatedElements, isSaving, handleSave, fileId } =
-        useContext(FileContext);
+    const {
+        progress,
+        updatedElements,
+        isSaving,
+        handleSave,
+        isAdding,
+        setIsAdding,
+        setAddingProgress,
+        addingProgress,
+    } = useContext(FileContext);
 
     return (
         <>
             {progress.finished === progress.total ? (
                 <>
-                    <ContextMenuProvider
-                        setAddLoaderOpen={setIsAdding}
-                        fileId={fileId}
-                        setAddLoaderProgress={setAddingProgress}
-                    >
+                    <ContextMenuProvider>
                         <div className="relative">
                             <Canvas
                                 setAddLoaderOpen={setIsAdding}

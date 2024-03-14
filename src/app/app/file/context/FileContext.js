@@ -1,6 +1,7 @@
 "use client";
 import { updateFileImage } from "@/app/app/actions/update";
 import ImageElement from "@/app/app/file/classes/ImageElement";
+import handleUpload from "@/app/app/file/handlers/HandleUpload";
 import useHistory, {
     AddCommand,
     DeleteCommand,
@@ -14,6 +15,11 @@ export default function FileContextProvider({ children, images, fileId }) {
     images = JSON.parse(images);
     const [updatedElements, setUpdatedelements] = useState([]);
     const [isSaving, setIssaving] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
+    const [addingProgress, setAddingProgress] = useState({
+        finished: 0,
+        total: 0,
+    });
     const [elements, setElements] = useState([]);
     const [progress, setProgress] = useState({
         total: images.length,
@@ -132,6 +138,33 @@ export default function FileContextProvider({ children, images, fileId }) {
         setUpdatedelements([]);
     }
 
+    const handleFileUpload = () => {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.multiple = true;
+        fileInput.accept = "image/*";
+        fileInput.style.display = "none";
+
+        document.body.appendChild(fileInput);
+        fileInput.click();
+
+        // Handle file selection
+        fileInput.addEventListener("change", (event) => {
+            const files = event.target.files;
+            handleUpload(
+                files,
+                0,
+                0,
+                setIsAdding,
+                setAddingProgress,
+                fileId,
+                setElements,
+                executeCommand
+            );
+            document.body.removeChild(fileInput);
+        });
+    };
+
     return (
         <FileContext.Provider
             value={{
@@ -146,6 +179,11 @@ export default function FileContextProvider({ children, images, fileId }) {
                 fileId,
                 handleSave,
                 isSaving,
+                isAdding,
+                setIsAdding,
+                addingProgress,
+                setAddingProgress,
+                handleFileUpload,
             }}
         >
             {children}

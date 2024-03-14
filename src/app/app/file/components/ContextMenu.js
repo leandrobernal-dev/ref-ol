@@ -1,7 +1,5 @@
 import { FileContext } from "@/app/app/file/context/FileContext";
-import handleUpload, {
-    fitRectanglesIntoGrid,
-} from "@/app/app/file/handlers/HandleUpload";
+import { fitRectanglesIntoGrid } from "@/app/app/file/handlers/HandleUpload";
 import { DeleteCommand, MoveCommand } from "@/app/app/file/hooks/useHistory";
 import {
     ContextMenu,
@@ -12,12 +10,7 @@ import {
 } from "@/components/ui/context-menu";
 import { useContext } from "react";
 
-export default function ContextMenuProvider({
-    children,
-    setAddLoaderOpen,
-    setAddLoaderProgress,
-    fileId,
-}) {
+export default function ContextMenuProvider({ children }) {
     const {
         handleSave,
         executeCommand,
@@ -26,34 +19,8 @@ export default function ContextMenuProvider({
         redo,
         updatedElements,
         elements,
+        handleFileUpload,
     } = useContext(FileContext);
-
-    const handleFileUpload = () => {
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.multiple = true;
-        fileInput.accept = "image/*";
-        fileInput.style.display = "none";
-
-        document.body.appendChild(fileInput);
-        fileInput.click();
-
-        // Handle file selection
-        fileInput.addEventListener("change", (event) => {
-            const files = event.target.files;
-            handleUpload(
-                files,
-                0,
-                0,
-                setAddLoaderOpen,
-                setAddLoaderProgress,
-                fileId,
-                setElements,
-                executeCommand
-            );
-            document.body.removeChild(fileInput);
-        });
-    };
 
     const handleArrangeImages = () => {
         const selectedElementsIds = elements
