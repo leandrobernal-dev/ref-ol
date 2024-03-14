@@ -1,14 +1,11 @@
 import { useState } from "react";
 
-import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-export function AuthForm({ authType, toggleAuthType }) {
+export function AuthForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
