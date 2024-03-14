@@ -11,7 +11,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${inter.className}`} suppressHydrationWarning>
+            <body
+                className={`${inter.className} dark`}
+                suppressHydrationWarning
+            >
                 {children}
             </body>
         </html>
