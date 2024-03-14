@@ -88,51 +88,88 @@ export default function handleUpload(
     }
 }
 
-function fitRectanglesIntoGrid(rectangles, mouseX, mouseY, gap = 10) {
-    // Find the maximum dimensions of the rectangles
+// Modified potpack package: https://github.com/mapbox/potpack/tree/main
+export function fitRectanglesIntoGrid(boxes, mouseX, mouseY) {
+    // calculate total box area and maximum box width
+    let area = 0;
     let maxWidth = 0;
-    let maxHeight = 0;
-    for (const rectangle of rectangles) {
-        if (rectangle.width > maxWidth) {
-            maxWidth = rectangle.width;
-        }
-        if (rectangle.height > maxHeight) {
-            maxHeight = rectangle.height;
-        }
+
+    for (const box of boxes) {
+        area += box.width * box.height;
+        maxWidth = Math.max(maxWidth, box.width);
     }
 
-    // Calculate the grid dimensions based on the maximum dimensions of the rectangles
-    const gridWidth = Math.max(maxWidth, mouseX) + maxWidth + gap; // Add gap
-    const gridHeight = Math.max(maxHeight, mouseY) + maxHeight + gap; // Add gap
+    // sort the boxes for insertion by height, descending
+    boxes.sort((a, b) => b.height - a.height);
 
-    // Sort rectangles by decreasing height
-    rectangles.sort((a, b) => b.height - a.height);
+    // aim for a squarish resulting container,
+    // slightly adjusted for sub-100% space utilization
+    const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth);
 
-    let currentX = mouseX;
-    let currentY = mouseY;
-    let maxHeightInRow = 0;
+    // start with a single empty space, unbounded at the bottom
+    const spaces = [{ x: mouseX, y: mouseY, w: startWidth, h: Infinity }];
 
-    for (const rectangle of rectangles) {
-        // Check if the current rectangle can fit in the remaining space of the row
-        if (currentX + rectangle.width > gridWidth) {
-            // Move to the next row
-            currentX = mouseX;
-            currentY += maxHeightInRow + gap; // Add gap
-            maxHeightInRow = 0;
+    let width = 0;
+    let height = 0;
+
+    for (const box of boxes) {
+        // look through spaces backwards so that we check smaller spaces first
+        for (let i = spaces.length - 1; i >= 0; i--) {
+            const space = spaces[i];
+
+            // look for empty spaces that can accommodate the current box
+            if (box.width > space.w || box.height > space.h) continue;
+
+            // found the space; add the box to its top-left corner
+            // |-------|-------|
+            // |  box  |       |
+            // |_______|       |
+            // |         space |
+            // |_______________|
+            box.x = space.x;
+            box.y = space.y;
+
+            height = Math.max(height, box.y + box.height);
+            width = Math.max(width, box.x + box.width);
+
+            if (box.width === space.w && box.height === space.h) {
+                // space matches the box exactly; remove it
+                const last = spaces.pop();
+                if (i < spaces.length) spaces[i] = last;
+            } else if (box.height === space.h) {
+                // space matches the box height; update it accordingly
+                // |-------|---------------|
+                // |  box  | updated space |
+                // |_______|_______________|
+                space.x += box.width;
+                space.w -= box.width;
+            } else if (box.width === space.w) {
+                // space matches the box width; update it accordingly
+                // |---------------|
+                // |      box      |
+                // |_______________|
+                // | updated space |
+                // |_______________|
+                space.y += box.height;
+                space.h -= box.height;
+            } else {
+                // otherwise the box splits the space into two spaces
+                // |-------|-----------|
+                // |  box  | new space |
+                // |_______|___________|
+                // | updated space     |
+                // |___________________|
+                spaces.push({
+                    x: space.x + box.width,
+                    y: space.y,
+                    w: space.w - box.width,
+                    h: box.height,
+                });
+                space.y += box.height;
+                space.h -= box.height;
+            }
+            break;
         }
-
-        // Update the starting position of the rectangle
-        rectangle.x = currentX;
-        rectangle.y = currentY;
-
-        // Update the max height in the row if necessary
-        if (rectangle.height > maxHeightInRow) {
-            maxHeightInRow = rectangle.height;
-        }
-
-        // Move to the next position in the row
-        currentX += rectangle.width + gap; // Add gap
     }
-
-    return rectangles;
+    return boxes;
 }

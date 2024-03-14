@@ -1,5 +1,8 @@
 import { FileContext } from "@/app/app/file/context/FileContext";
-import handleUpload from "@/app/app/file/handlers/HandleUpload";
+import handleUpload, {
+    fitRectanglesIntoGrid,
+} from "@/app/app/file/handlers/HandleUpload";
+import { MoveCommand } from "@/app/app/file/hooks/useHistory";
 import {
     ContextMenu,
     ContextMenuContent,
@@ -22,7 +25,9 @@ export default function ContextMenuProvider({
         undo,
         redo,
         updatedElements,
+        elements,
     } = useContext(FileContext);
+
     const handleFileUpload = () => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -49,6 +54,44 @@ export default function ContextMenuProvider({
             document.body.removeChild(fileInput);
         });
     };
+
+    const handleArrangeImages = () => {
+        const selectedElementsIds = elements
+            .map((element, index) =>
+                element.selected ? { id: element.id, index } : null
+            )
+            .filter((id) => id !== null);
+        const initialPositions = selectedElementsIds.map((element) => ({
+            id: element.id,
+            x: elements[element.index].x,
+            y: elements[element.index].y,
+        }));
+
+        const updatedSelectedItems = fitRectanglesIntoGrid(
+            elements.filter((element) => element.selected),
+            0,
+            0
+        );
+        const newPositions = selectedElementsIds.map((element) => ({
+            id: element.id,
+            x: updatedSelectedItems[element.index].x,
+            y: updatedSelectedItems[element.index].y,
+        }));
+        const moveCommand = new MoveCommand(
+            selectedElementsIds.map((element) => element.id),
+            initialPositions,
+            newPositions,
+            setElements
+        );
+        executeCommand(moveCommand);
+
+        const updatedItems = elements.map(
+            (element) =>
+                updatedSelectedItems.find((item) => item.id === element.id) ||
+                element
+        );
+        setElements(updatedItems);
+    };
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
@@ -69,7 +112,9 @@ export default function ContextMenuProvider({
                     Paste
                     <ContextMenuShortcut>Ctrl+V</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem inset>Auto Arrange</ContextMenuItem>
+                <ContextMenuItem inset onClick={handleArrangeImages}>
+                    Auto Arrange
+                </ContextMenuItem>
                 <ContextMenuItem inset onClick={undo}>
                     Undo
                     <ContextMenuShortcut>Ctrl+Z</ContextMenuShortcut>
