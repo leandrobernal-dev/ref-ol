@@ -50,8 +50,10 @@ export function FileCard({ file }) {
                     />
                 </div>
             </CardHeader>
-            <CardContent className="p-4">
-                <CardTitle>{file.name}</CardTitle>
+            <CardContent className="py-2 px-4">
+                <CardTitle className="truncate text-sm">
+                    <Link href={"/app/file/" + file.id}>{file.name}</Link>
+                </CardTitle>
             </CardContent>
         </Card>
     );
