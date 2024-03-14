@@ -7,7 +7,7 @@ import {
     useRef,
     useState,
 } from "react";
-import ImageElement from "@/app/app/file/classes/ImageElement";
+import handleUpload from "@/app/app/file/handlers/HandleUpload";
 import { usePressedKeys } from "@/app/app/file/hooks/customHooks";
 import { cursorType } from "@/app/app/file/utilities/CursorUtils";
 import { ZoomHandler } from "@/app/app/file/handlers/ZoomHandler";
@@ -34,7 +34,6 @@ import {
 } from "@/app/app/file/hooks/useHistory";
 import KeyboardShortcuts from "@/app/app/file/utilities/Shortcuts";
 import { FileContext } from "@/app/app/file/context/FileContext";
-import { createImageFile } from "@/app/app/actions/create";
 
 export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
     const canvasRef = useRef(null);
@@ -193,54 +192,6 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
         function handleDragOver(event) {
             event.preventDefault();
         }
-        function fitRectanglesIntoGrid(rectangles, mouseX, mouseY, gap = 10) {
-            // Find the maximum dimensions of the rectangles
-            let maxWidth = 0;
-            let maxHeight = 0;
-            for (const rectangle of rectangles) {
-                if (rectangle.width > maxWidth) {
-                    maxWidth = rectangle.width;
-                }
-                if (rectangle.height > maxHeight) {
-                    maxHeight = rectangle.height;
-                }
-            }
-
-            // Calculate the grid dimensions based on the maximum dimensions of the rectangles
-            const gridWidth = Math.max(maxWidth, mouseX) + maxWidth + gap; // Add gap
-            const gridHeight = Math.max(maxHeight, mouseY) + maxHeight + gap; // Add gap
-
-            // Sort rectangles by decreasing height
-            rectangles.sort((a, b) => b.height - a.height);
-
-            let currentX = mouseX;
-            let currentY = mouseY;
-            let maxHeightInRow = 0;
-
-            for (const rectangle of rectangles) {
-                // Check if the current rectangle can fit in the remaining space of the row
-                if (currentX + rectangle.width > gridWidth) {
-                    // Move to the next row
-                    currentX = mouseX;
-                    currentY += maxHeightInRow + gap; // Add gap
-                    maxHeightInRow = 0;
-                }
-
-                // Update the starting position of the rectangle
-                rectangle.x = currentX;
-                rectangle.y = currentY;
-
-                // Update the max height in the row if necessary
-                if (rectangle.height > maxHeightInRow) {
-                    maxHeightInRow = rectangle.height;
-                }
-
-                // Move to the next position in the row
-                currentX += rectangle.width + gap; // Add gap
-            }
-
-            return rectangles;
-        }
 
         function handleDrop(event) {
             event.preventDefault();
@@ -253,81 +204,16 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
             );
 
             const files = event.dataTransfer.files;
-            // return if at least one of the files exceeds over 500kb file size
-            if (Array.from(files).some((file) => file.size > 500000)) {
-                alert(
-                    "At least one of the file exceeds 500kb in size. Please upload a smaller file."
-                );
-                return;
-            }
-            if (
-                Array.from(files).some(
-                    (file) => !file.type.startsWith("image/")
-                )
-            ) {
-                alert(
-                    "At least one of the files is not an image type. Please upload only image files."
-                );
-                return;
-            }
-
-            setAddLoaderOpen(true);
-            setAddLoaderProgress({ total: files.length, finished: 0 });
-
-            const newElements = []; // Array to store new elements
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const imageData = event.target.result;
-                    const image = new Image();
-                    image.src = imageData;
-                    image.onload = async () => {
-                        const newElement = new ImageElement({
-                            src: image.src,
-                            x: mouseCoords.x - image.width / 2,
-                            y: mouseCoords.y - image.height / 2,
-                            selected: true,
-                            key: file.name,
-                        });
-                        await newElement.create();
-                        newElements.push(newElement); // Add new element to the array
-
-                        // Check if all files have been processed
-                        if (newElements.length === files.length) {
-                            const newAddedFiles = [];
-                            // Create new file one by one
-                            const packedElements = fitRectanglesIntoGrid(
-                                newElements,
-                                mouseCoords.x,
-                                mouseCoords.y
-                            ); // Pack elements into grid
-                            for (const newElement of newElements) {
-                                const newFile = await createImageFile(
-                                    JSON.stringify({ newElement, fileId })
-                                );
-                                newAddedFiles.push(JSON.parse(newFile));
-                            }
-
-                            createElement(
-                                packedElements.map((el, index) => ({
-                                    ...el,
-                                    id: newAddedFiles[index].id,
-                                }))
-                            );
-                            setAddLoaderOpen(false);
-                        }
-                    };
-                };
-                reader.onloadend = () => {
-                    // Update loader progress
-                    setAddLoaderProgress((prev) => ({
-                        ...prev,
-                        finished: prev.finished + 1,
-                    }));
-                };
-                reader.readAsDataURL(file);
-            }
+            handleUpload(
+                files,
+                mouseCoords.x,
+                mouseCoords.y,
+                setAddLoaderOpen,
+                setAddLoaderProgress,
+                fileId,
+                setElements,
+                executeCommand
+            );
         }
 
         // Attach event listeners
@@ -584,11 +470,6 @@ export default function Canvas({ setAddLoaderOpen, setAddLoaderProgress }) {
             mouseCoords
         );
     }, [scale, panOffset, elements, mouseCoords]);
-
-    function createElement(newElements) {
-        const addCommand = new AddCommand(newElements, setElements);
-        executeCommand(addCommand);
-    }
 
     // Rerender when window resizes, disable default page zoom
     useEffect(() => {
