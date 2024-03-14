@@ -1,3 +1,4 @@
+import { FileContext } from "@/app/app/file/context/FileContext";
 import handleUpload from "@/app/app/file/handlers/HandleUpload";
 import {
     ContextMenu,
@@ -6,15 +7,15 @@ import {
     ContextMenuShortcut,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { useContext } from "react";
 
 export default function ContextMenuProvider({
     children,
     setAddLoaderOpen,
     setAddLoaderProgress,
     fileId,
-    setElements,
-    executeCommand,
 }) {
+    const { handleSave, executeCommand, setElements } = useContext(FileContext);
     const handleFileUpload = () => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -70,7 +71,7 @@ export default function ContextMenuProvider({
                     Redo
                     <ContextMenuShortcut>Ctrl+Y</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem inset>
+                <ContextMenuItem inset onClick={handleSave}>
                     Save
                     <ContextMenuShortcut>Ctrl+S</ContextMenuShortcut>
                 </ContextMenuItem>
