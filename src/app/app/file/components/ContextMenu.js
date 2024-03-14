@@ -2,7 +2,7 @@ import { FileContext } from "@/app/app/file/context/FileContext";
 import handleUpload, {
     fitRectanglesIntoGrid,
 } from "@/app/app/file/handlers/HandleUpload";
-import { MoveCommand } from "@/app/app/file/hooks/useHistory";
+import { DeleteCommand, MoveCommand } from "@/app/app/file/hooks/useHistory";
 import {
     ContextMenu,
     ContextMenuContent,
@@ -92,6 +92,20 @@ export default function ContextMenuProvider({
         );
         setElements(updatedItems);
     };
+
+    const handleDelete = () => {
+        const idsToDelete = elements
+            .filter((element) => element.selected)
+            .map((element) => element.id);
+        const deleteCommand = new DeleteCommand(
+            idsToDelete,
+            elements,
+            setElements
+        );
+        executeCommand(deleteCommand);
+        const updatedItems = elements.filter((element) => !element.selected);
+        setElements(updatedItems);
+    };
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
@@ -100,7 +114,16 @@ export default function ContextMenuProvider({
                     Upload
                     <ContextMenuShortcut>⇧A</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem inset disabled>
+                <ContextMenuItem
+                    inset
+                    disabled={
+                        elements.filter((element) => element.selected).length >
+                        0
+                            ? false
+                            : true
+                    }
+                    onClick={handleDelete}
+                >
                     Delete
                     <ContextMenuShortcut>⌫/⌦</ContextMenuShortcut>
                 </ContextMenuItem>
