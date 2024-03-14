@@ -10,7 +10,7 @@ function KeyboardShortcuts({
     undo,
     redo,
 }) {
-    const { handleSave } = useContext(FileContext);
+    const { handleSave, handleFileUpload } = useContext(FileContext);
     useEffect(() => {
         const handleKeyPress = (event) => {
             const { key, ctrlKey } = event;
@@ -70,9 +70,15 @@ function KeyboardShortcuts({
                 );
                 executeCommand(newSelectCommand);
             }
+
+            // Check for Shift + A (add image)
+            if (event.shiftKey && (key === "a" || key === "A")) {
+                // Open add image modal
+                handleFileUpload();
+            }
         };
         const keys =
-            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s, backspace";
+            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s, backspace, shift+a";
         hotkeys(keys, handleKeyPress); // Register hotkeys
 
         return () => {
