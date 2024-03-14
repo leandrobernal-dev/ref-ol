@@ -23,7 +23,6 @@ export default function FilesPage() {
                     </span>
                 </section>
                 <section className="flex items-center gap-2">
-                    <ThemeToggle />
                     <Button onClick={() => signOut()} variant="outline">
                         <ExitIcon className="mr-2 h-4 w-4" />
                         Logout
