@@ -4,7 +4,7 @@ import { FileActionModal } from "@/app/app/components/FileActionModal";
 import { FileDataContext } from "@/app/app/context/FilesContext";
 import { useContext } from "react";
 import { Button } from "@/components/ui/button";
-import { ExitIcon } from "@radix-ui/react-icons";
+import { ExitIcon, FilePlusIcon } from "@radix-ui/react-icons";
 import { ThemeToggle } from "@/theme/ThemeToggler";
 import { signOut } from "next-auth/react";
 
@@ -13,12 +13,20 @@ export default function FilesPage() {
     return (
         <main className="p-8">
             <section className="flex justify-between">
-                <section>
-                    <span>My Files</span> |{" "}
+                <section className="flex items-center gap-1">
+                    <h3>
+                        <strong>My Files</strong>
+                    </h3>{" "}
+                    |
                     <span>
                         <FileActionModal
                             action={"create"}
-                            children={<Button variant="">Create new</Button>}
+                            children={
+                                <Button variant="">
+                                    <FilePlusIcon className="mr-2 h-4 w-4" />
+                                    Create new
+                                </Button>
+                            }
                         />
                     </span>
                 </section>
@@ -35,7 +43,12 @@ export default function FilesPage() {
                     <p>
                         <FileActionModal
                             action={"create"}
-                            children={<Button variant="">Create new</Button>}
+                            children={
+                                <Button variant="">
+                                    <FilePlusIcon className="mr-2 h-4 w-4" />
+                                    Create new
+                                </Button>
+                            }
                         />
                     </p>
                 </section>
