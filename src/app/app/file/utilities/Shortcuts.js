@@ -45,7 +45,7 @@ function KeyboardShortcuts({
             }
 
             // Check for Delete key
-            if (key === "Delete") {
+            if (key === "Delete" || key === "Backspace") {
                 const idsToDelete = elements
                     .filter((element) => element.selected)
                     .map((element) => element.id);
@@ -71,14 +71,12 @@ function KeyboardShortcuts({
                 executeCommand(newSelectCommand);
             }
         };
-
-        hotkeys(
-            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s",
-            handleKeyPress
-        ); // Register hotkeys
+        const keys =
+            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s, backspace";
+        hotkeys(keys, handleKeyPress); // Register hotkeys
 
         return () => {
-            hotkeys.unbind("ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s"); // Unbind hotkeys on component unmount
+            hotkeys.unbind(keys); // Unbind hotkeys on component unmount
         };
     }, [elements, executeCommand, setElements, undo, redo]);
 
