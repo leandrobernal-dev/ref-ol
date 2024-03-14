@@ -22,7 +22,7 @@ export default function FilesPage() {
                         <FileActionModal
                             action={"create"}
                             children={
-                                <Button variant="">
+                                <Button variant="ghost">
                                     <FilePlusIcon className="mr-2 h-4 w-4" />
                                     Create new
                                 </Button>
