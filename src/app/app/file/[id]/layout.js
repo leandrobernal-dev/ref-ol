@@ -8,7 +8,13 @@ import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }) {
+    const { user } = await getServerSession();
+    const currentUser = await User.findOne({ email: user.email });
     const file = await Files.findOne({ _id: params.id });
+
+    if (file.created_by.toString() != currentUser._id.toString()) {
+        notFound(); // If the file is not created by the current user, return 404
+    }
     return {
         title: file.name + " - refOnline",
     };
