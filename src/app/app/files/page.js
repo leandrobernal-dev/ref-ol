@@ -11,8 +11,8 @@ import { signOut } from "next-auth/react";
 export default function FilesPage() {
     const { optimisticFiles: files } = useContext(FileDataContext);
     return (
-        <main className="p-8">
-            <section className="flex justify-between">
+        <main className="p-8 h-screen overflow-y-hidden">
+            <section className="flex justify-between border-b border-zinc-600 pb-4">
                 <section className="flex items-center gap-1">
                     <h3>
                         <strong>My Files</strong>
