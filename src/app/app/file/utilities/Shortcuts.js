@@ -10,7 +10,8 @@ function KeyboardShortcuts({
     undo,
     redo,
 }) {
-    const { handleSave, handleFileUpload } = useContext(FileContext);
+    const { handleSave, handleFileUpload, handleCopy, handlePaste } =
+        useContext(FileContext);
     useEffect(() => {
         const handleKeyPress = (event) => {
             const { key, ctrlKey } = event;
@@ -76,9 +77,20 @@ function KeyboardShortcuts({
                 // Open add image modal
                 handleFileUpload();
             }
+
+            // Check for Ctrl + C (copy)
+            if (ctrlKey && (key === "c" || key === "C")) {
+                // Copy the selected elements
+                handleCopy();
+            }
+            // Check for Ctrl + V (paste)
+            if (ctrlKey && (key === "v" || key === "V")) {
+                // Paste the copied elements
+                handlePaste();
+            }
         };
         const keys =
-            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s, backspace, shift+a";
+            "ctrl+z, ctrl+y, ctrl+a, delete, escape, ctrl+s, backspace, shift+a, ctrl+c, ctrl+v";
         hotkeys(keys, handleKeyPress); // Register hotkeys
 
         return () => {
