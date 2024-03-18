@@ -38,26 +38,48 @@ export async function updateFileImage(file) {
         const updates = JSON.parse(file);
 
         const promises = updates.map(async (update) => {
-            const { id, action, transform } = update;
+            const { id, action, transform, referenceId } = update;
             if (action === "delete") {
                 try {
                     // Find the image by ID to get the key
                     const image = await Images.findById(id).select("key");
                     const key = image.key;
-                    // Delete the object from S3
-                    const command = new DeleteObjectCommand({
-                        Bucket: process.env.AWS_BUCKET_NAME,
-                        Key: key,
-                    });
-                    await s3Client.send(command);
+                    const images = await Images.find({ key });
+
+                    // Delete the object from S3 IF only one Image is using the same image
+                    if (images.length === 1) {
+                        const command = new DeleteObjectCommand({
+                            Bucket: process.env.AWS_BUCKET_NAME,
+                            Key: key,
+                        });
+                        await s3Client.send(command);
+                    }
 
                     // Delete the image from MongoDB
                     await Images.findByIdAndDelete(id);
                 } catch (error) {
                     console.error("Error deleting image:", error);
                 }
+            } else if (action === "copy") {
+                const image = await Images.findById(referenceId);
+                const copyExists = await Images.findById(id);
+                if (copyExists) {
+                    await Images.findByIdAndUpdate(id, {
+                        transform,
+                    });
+                } else {
+                    const newCopy = new Images({
+                        _id: id,
+                        transform,
+                        file_id: image.file_id,
+                        key: image.key,
+                    });
+                    await newCopy.save();
+                }
             } else {
-                await Images.findByIdAndUpdate(id, { transform });
+                await Images.findByIdAndUpdate(id, {
+                    transform,
+                });
             }
         });
         // Execute all promises in parallel
