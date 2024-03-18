@@ -168,6 +168,36 @@ class SelectCommand {
     }
 }
 
+class CopyCommand {
+    constructor(elementIds, newElements, setElements) {
+        this.elementIds = elementIds;
+        this.newElements = newElements;
+        this.setElements = setElements;
+    }
+
+    redo() {
+        this.execute();
+    }
+
+    execute() {
+        this.setElements((prevElements) => [
+            ...prevElements.map((el) => ({
+                ...el,
+                selected: false,
+            })),
+            ...this.newElements,
+        ]);
+    }
+
+    undo() {
+        this.setElements((prevElements) => {
+            return prevElements.filter(
+                (el) => !this.newElements.some((newEl) => newEl.id === el.id)
+            );
+        });
+    }
+}
+
 class AddCommand {
     constructor(newElements, setElements) {
         this.newElements = newElements;
@@ -270,4 +300,5 @@ export {
     DeleteCommand,
     RotateCommand,
     SelectCommand,
+    CopyCommand,
 };
