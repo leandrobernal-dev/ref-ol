@@ -4,16 +4,17 @@ import ImageElement from "@/app/app/file/classes/ImageElement";
 import handleUpload from "@/app/app/file/handlers/HandleUpload";
 import useHistory, {
     AddCommand,
+    CopyCommand,
     DeleteCommand,
     SelectCommand,
 } from "@/app/app/file/hooks/useHistory";
+import mongoose from "mongoose";
 import { createContext, useEffect, useState } from "react";
 
 export const FileContext = createContext();
 
 export default function FileContextProvider({ children, images, fileId }) {
     images = JSON.parse(images);
-    const [updatedElements, setUpdatedelements] = useState([]);
     const [isSaving, setIssaving] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [addingProgress, setAddingProgress] = useState({
@@ -26,17 +27,19 @@ export default function FileContextProvider({ children, images, fileId }) {
         finished: 0,
     });
     const { executeCommand, undo, redo, history, currentIndex } = useHistory();
+    const [copiedElements, setCopiedElements] = useState([]);
+    const [updatedElements, setUpdatedElements] = useState([]);
+    const [lastUpdateIndex, setLastUpdateIndex] = useState(currentIndex);
 
     useEffect(() => {
         // Use current history and remove select commands as it is not needed in the update, also remove add commands as it is already saved in the server
         const historyWithoutSelect = [...history]
-            .slice(0, currentIndex + 1)
+            .slice(Math.min(lastUpdateIndex, currentIndex)) // Use currentIndex if undo operation is made | if lastUpdateIndex is larger than currentIndex, use currentIndex
             .filter(
                 (command) =>
                     !(command instanceof SelectCommand) &&
                     !(command instanceof AddCommand)
             );
-
         // Save updated element ids and actions
         if (historyWithoutSelect.length > 0) {
             const updatedElements = historyWithoutSelect.reduce(
@@ -54,6 +57,11 @@ export default function FileContextProvider({ children, images, fileId }) {
                                 id,
                                 action: "delete",
                             });
+                        } else if (command instanceof CopyCommand) {
+                            acc.push({
+                                id,
+                                action: "copy",
+                            });
                         } else {
                             if (existingIndex === -1) {
                                 acc.push({ id, action: "update" });
@@ -64,9 +72,9 @@ export default function FileContextProvider({ children, images, fileId }) {
                 },
                 []
             );
-            setUpdatedelements(updatedElements);
+            setUpdatedElements(updatedElements);
         } else {
-            setUpdatedelements([]);
+            setUpdatedElements([]);
         }
     }, [history, currentIndex]);
 
@@ -119,6 +127,20 @@ export default function FileContextProvider({ children, images, fileId }) {
                         id: updatedEl.id,
                         action: updatedEl.action,
                     };
+                } else if (updatedEl.action === "copy") {
+                    return {
+                        id: updatedEl.id,
+                        referenceId: correspondingElement.referenceId,
+                        action: updatedEl.action,
+                        fileId: fileId,
+                        transform: {
+                            x: correspondingElement.x,
+                            y: correspondingElement.y,
+                            width: correspondingElement.width,
+                            height: correspondingElement.height,
+                            rotationAngle: correspondingElement.rotationAngle,
+                        },
+                    };
                 } else {
                     return {
                         id: updatedEl.id,
@@ -135,7 +157,8 @@ export default function FileContextProvider({ children, images, fileId }) {
             });
         await updateFileImage(JSON.stringify(elementsToUpdate));
         setIssaving(false);
-        setUpdatedelements([]);
+        setLastUpdateIndex(currentIndex);
+        setUpdatedElements([]);
     }
 
     const handleFileUpload = () => {
@@ -165,6 +188,30 @@ export default function FileContextProvider({ children, images, fileId }) {
         });
     };
 
+    const handleCopy = () => {
+        const selectedElements = elements.filter((element) => element.selected);
+        setCopiedElements(selectedElements);
+    };
+    const handlePaste = () => {
+        const newElements = JSON.parse(JSON.stringify(copiedElements)).map(
+            (element, index) => {
+                element.referenceId = element.id;
+                element.id = new mongoose.Types.ObjectId();
+                element.image = copiedElements[index].image;
+                element.x += element.width / 2;
+                element.y += element.height / 2;
+                return element;
+            }
+        );
+        const copiedElementIds = newElements.map((element) => element.id);
+        const newCopyCommand = new CopyCommand(
+            copiedElementIds,
+            newElements,
+            setElements
+        );
+        executeCommand(newCopyCommand);
+    };
+
     return (
         <FileContext.Provider
             value={{
@@ -175,7 +222,7 @@ export default function FileContextProvider({ children, images, fileId }) {
                 undo,
                 redo,
                 updatedElements,
-                setUpdatedelements,
+                setUpdatedElements,
                 fileId,
                 handleSave,
                 isSaving,
@@ -184,6 +231,8 @@ export default function FileContextProvider({ children, images, fileId }) {
                 addingProgress,
                 setAddingProgress,
                 handleFileUpload,
+                handleCopy,
+                handlePaste,
             }}
         >
             {children}
