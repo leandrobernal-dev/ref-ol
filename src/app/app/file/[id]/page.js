@@ -4,6 +4,7 @@ import AddLoader from "@/app/app/file/components/AddLoader";
 import Canvas from "@/app/app/file/components/Canvas";
 import ContextMenuProvider from "@/app/app/file/components/ContextMenu";
 import Loader from "@/app/app/file/components/Loader";
+import SaveLoader from "@/app/app/file/components/SaveLoader";
 import { FileContext } from "@/app/app/file/context/FileContext";
 import { Button } from "@/components/ui/button";
 import { Cross1Icon, ReloadIcon } from "@radix-ui/react-icons";
@@ -56,6 +57,7 @@ export default function FilePageLayout() {
                         </div>
                     </ContextMenuProvider>
                     <AddLoader open={isAdding} progress={addingProgress} />
+                    <SaveLoader open={isSaving} />
                 </>
             ) : (
                 <Loader progress={progress} />
