@@ -1,4 +1,5 @@
 import FileContextProvider from "@/app/app/file/context/FileContext";
+import getCurrentUser from "@/app/app/helpers/getCurrentUser";
 import Files from "@/models/Files";
 import Images from "@/models/Images";
 import User from "@/models/User";
@@ -8,8 +9,7 @@ import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }) {
-    const { user } = await getServerSession();
-    const currentUser = await User.findOne({ email: user.email });
+    const currentUser = await getCurrentUser();
     const file = await Files.findOne({ _id: params.id });
 
     if (file.created_by.toString() != currentUser._id.toString()) {
@@ -21,8 +21,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function FileLayout({ children, params }) {
-    const { user } = await getServerSession();
-    const currentUser = await User.findOne({ email: user.email });
+    const currentUser = await getCurrentUser();
     const file = await Files.findOne({ _id: params.id });
 
     if (file.created_by.toString() != currentUser._id.toString()) {

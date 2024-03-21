@@ -1,5 +1,6 @@
 "use server";
 
+import getCurrentUser from "@/app/app/helpers/getCurrentUser";
 import Files from "@/models/Files";
 import Images from "@/models/Images";
 import User from "@/models/User";
@@ -9,8 +10,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createFile(prevState, formData) {
-    const session = await getServerSession();
-    const currentUser = await User.findOne({ email: session.user.email });
+    const currentUser = await getCurrentUser();
     let id;
     try {
         const newFile = new Files({

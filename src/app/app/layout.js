@@ -11,6 +11,7 @@ import { getServerSession } from "next-auth";
 import Files from "@/models/Files";
 import Images from "@/models/Images";
 import dbConnect from "@/db/database";
+import getCurrentUser from "@/app/app/helpers/getCurrentUser";
 
 const poppins = Poppins({
     subsets: ["latin"],
@@ -40,8 +41,7 @@ async function getSignedUrlForKey(key) {
 }
 export default async function RootLayout({ children, session }) {
     await dbConnect();
-    const { user } = await getServerSession();
-    const currentUser = await User.findOne({ email: user.email });
+    const currentUser = await getCurrentUser();
     let files = await Files.find({ created_by: currentUser }).populate({
         path: "thumbnails",
         model: Images,

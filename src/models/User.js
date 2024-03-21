@@ -13,6 +13,7 @@ const UserSchema = new Schema(
                 return !this.email;
             },
             unique: [true, "Username Already Exist!"],
+            sparse: true,
         },
         email: {
             type: String,
@@ -20,6 +21,7 @@ const UserSchema = new Schema(
                 return !this.username;
             },
             unique: [true, "Email Already Exist!"],
+            sparse: true,
         },
         password: String,
         provider: {

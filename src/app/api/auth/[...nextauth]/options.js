@@ -60,7 +60,7 @@ export const options = {
         signIn: "/auth",
     },
     callbacks: {
-        async signIn({ user, profile, account, email, credentials }) {
+        signIn: async ({ user, profile, account, email, credentials }) => {
             // console.log({ account, profile });
             if (account.type === "oauth") {
                 await dbConnect();
@@ -68,40 +68,46 @@ export const options = {
             }
             return true;
         },
-        async jwt({ token, trigger, session }) {
+        jwt: async ({ token, trigger, session }) => {
             // console.log(token);
             const user = await getUserByEmail({ email: token.email });
-            // console.log(user);
+            if (user?._id) {
+                token = { ...token, _id: user._id };
+            }
             return token;
         },
-        async session({ session, token }) {
+        session: async ({ session, token }) => {
+            session.user.userData = {
+                id: token._id,
+            };
             return session;
         },
+    },
+    session: {
+        strategy: "jwt",
     },
 };
 
 async function signInWithOAuth({ account, profile }) {
-    if (account.provider === "github") {
-        const user = await User.findOne({ username: profile.login });
-        if (user) return true;
-        const newUser = new User({
-            username: profile.login,
-            name: profile.name,
-            provider: account.provider,
-        });
-        await newUser.save();
-
-        return true;
-    }
-    const user = await User.findOne({ email: profile.email });
-    if (user) return true;
-
-    const newUser = new User({
-        email: profile.email,
+    let user;
+    let newUser = new User({
         name: profile.name,
         provider: account.provider,
     });
+    // console.log(profile);
+
+    if (account.provider === "github") {
+        user = await User.findOne({ username: profile.login });
+        if (user) return true;
+        newUser.username = profile.login;
+    } else {
+        user = await User.findOne({ email: profile.email });
+        if (user) return true;
+        newUser.email = profile.email;
+    }
+
     await newUser.save();
+
     return true;
 }
 
