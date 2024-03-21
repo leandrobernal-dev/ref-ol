@@ -94,8 +94,6 @@ async function signInWithOAuth({ account, profile }) {
         return true;
     }
     const user = await User.findOne({ email: profile.email });
-    console.log(account, profile, user);
-    // console.log({ user });
     if (user) return true;
 
     const newUser = new User({
@@ -104,7 +102,6 @@ async function signInWithOAuth({ account, profile }) {
         provider: account.provider,
     });
     await newUser.save();
-    // console.log({ newUser });
     return true;
 }
 
