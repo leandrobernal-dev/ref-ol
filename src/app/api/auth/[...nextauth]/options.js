@@ -81,7 +81,20 @@ export const options = {
 };
 
 async function signInWithOAuth({ account, profile }) {
+    if (account.provider === "github") {
+        const user = await User.findOne({ username: profile.login });
+        if (user) return true;
+        const newUser = new User({
+            username: profile.login,
+            name: profile.name,
+            provider: account.provider,
+        });
+        await newUser.save();
+
+        return true;
+    }
     const user = await User.findOne({ email: profile.email });
+    console.log(account, profile, user);
     // console.log({ user });
     if (user) return true;
 

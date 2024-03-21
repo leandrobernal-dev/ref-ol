@@ -7,9 +7,18 @@ const UserSchema = new Schema(
             type: String,
             required: false,
         },
+        username: {
+            type: String,
+            required: function () {
+                return !this.email;
+            },
+            unique: [true, "Username Already Exist!"],
+        },
         email: {
             type: String,
-            required: true,
+            required: function () {
+                return !this.username;
+            },
             unique: [true, "Email Already Exist!"],
         },
         password: String,
