@@ -1,5 +1,6 @@
 import FileContextProvider from "@/app/app/file/context/FileContext";
 import getCurrentUser from "@/app/app/helpers/getCurrentUser";
+import { siteConfig } from "@/config/config";
 import Files from "@/models/Files";
 import Images from "@/models/Images";
 import User from "@/models/User";
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }) {
         notFound(); // If the file is not created by the current user, return 404
     }
     return {
-        title: file.name + " - refOnline",
+        title: file.name + " - " + siteConfig.site.title,
     };
 }
 
