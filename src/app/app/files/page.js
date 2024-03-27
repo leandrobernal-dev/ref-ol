@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ExitIcon, FilePlusIcon } from "@radix-ui/react-icons";
 import { ThemeToggle } from "@/theme/ThemeToggler";
 import { signOut } from "next-auth/react";
+import { siteConfig } from "@/config/config";
+import Link from "next/link";
 
 export default function FilesPage() {
     const { optimisticFiles: files } = useContext(FileDataContext);
@@ -14,9 +16,9 @@ export default function FilesPage() {
         <main className="p-8 h-screen overflow-y-hidden">
             <section className="flex justify-between border-b border-zinc-600 pb-4">
                 <section className="flex items-center gap-1">
-                    <h3>
-                        <strong>My Files</strong>
-                    </h3>{" "}
+                    <Link href={"/app/files"} className="text-lg font-black">
+                        {siteConfig.site.title}
+                    </Link>{" "}
                     |
                     <span>
                         <FileActionModal
