@@ -1,5 +1,6 @@
 "use client";
 import { AuthForm } from "@/app/auth/AuthForm";
+import { siteConfig } from "@/config/config";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -9,9 +10,12 @@ export default function AuthPage() {
             <div className="lg:p-8">
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <div className="flex flex-col space-y-2 ">
-                        <h1 className="text-2xl font-semibold tracking-tight">
-                            Login OR create a new account.
+                        <h1 className="text-5xl pb-4 text-center font-bold tracking-tight">
+                            {siteConfig.site.title}
                         </h1>
+                        <h2 className="text-2xl font-semibold tracking-tight">
+                            Login OR create a new account
+                        </h2>
                     </div>
                     <Suspense>
                         <AuthForm />
